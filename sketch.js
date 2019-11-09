@@ -1,7 +1,7 @@
-let hh1, hh2, hh3, clap1, clap2, clap3, bass1, bass2, bass3; //instrument - container for all sound sources
-let hh, clap, bass; //instrument - will serve as container for active sound source
-let hPat, cPat, bPat, sPat; //instrument pattern - holds array of numbers for pattern
-let hPhrase, cPhrase, bPhrase; //hihat phrase - defines hhow hihat pattern is interpreted
+let hh1, hh2, hh3, clap1, clap2, clap3, bass1, bass2, bass3, perc1, perc2, perc3; //instrument - container for all sound sources
+let hh, clap, bass, p1, p2; //instrument - will serve as container for active sound source
+let hPat, cPat, bPat, p1Pat, p2Pat, sPat; //instrument pattern - holds array of numbers for pattern
+let hPhrase, cPhrase, bPhrase, p1Phrase, p2Phrase; //hihat phrase - defines hhow hihat pattern is interpreted
 let drums; //part - we will attach phrase to part which will serve as our transport to drive the phrase
 
 
@@ -12,6 +12,8 @@ let selectedArray = 4;
 let euclidArrayHat;
 let euclidArrayClap;
 let euclidArrayBass;
+let euclidArrayP1;
+let euclidArrayP2;
 
 sPat = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
 
@@ -307,67 +309,102 @@ function setup() {
   bass1 = loadSound('assets/bass.mp3', () => { });
   bass2 = loadSound('assets/bass2.mp3', () => { });
   bass3 = loadSound('assets/bass3.mp3', () => { });
+  p1_1 = loadSound('assets/p1-1.mp3', () => { });
+  p1_2 = loadSound('assets/p1-2.mp3', () => { });
+  p1_3 = loadSound('assets/p1-3.mp3', () => { });
+  p2_1 = loadSound('assets/p2-1.mp3', () => { });
+  p2_2 = loadSound('assets/p2-2.mp3', () => { });
+  p2_3 = loadSound('assets/p2-3.mp3', () => { });
+
 
   hh = hh1;
   clap = clap1;
   bass = bass1;
+  p1 = p1_1;
+  p2 = p2_1;
 
   //sets starting pattern for each instrument (does not effect slider position!)
-  hPat = euclidArray[16][5];
-  cPat = euclidArray[16][2];
-  bPat = euclidArray[16][4];
+  hPat = euclidArray[16][0];
+  cPat = euclidArray[16][0];
+  bPat = euclidArray[16][0];
+  p1Pat = euclidArray[16][0];
+  p2Pat = euclidArray[16][0];
 
 
   //creates sliders for step length
   hhStep = createSlider(0, 16, 16, 1)
-  hhStep.position(10, 190);
+  hhStep.position(10, 250);
   hhStep.style('width', '80px');
 
   clapStep = createSlider(0, 16, 16, 1)
-  clapStep.position(10, 220);
+  clapStep.position(10, 280);
   clapStep.style('width', '80px');
 
   bassStep = createSlider(0, 16, 16, 1)
-  bassStep.position(10, 250);
+  bassStep.position(10, 310);
   bassStep.style('width', '80px');
+
+  p1Step = createSlider(0, 16, 16, 1)
+  p1Step.position(10, 340);
+  p1Step.style('width', '80px');
+
+  p2Step = createSlider(0, 16, 16, 1)
+  p2Step.position(10, 370);
+  p2Step.style('width', '80px');
 
 
   //creates slider for euclidian density 0-16
-  hhDensity = createSlider(0, 16, 5, 1);
+  hhDensity = createSlider(0, 16, 0, 1);
   hhDensity.position(10, 80);
   hhDensity.style('width', '80px');
 
-  clapDensity = createSlider(0, 16, 2, 1);
+  clapDensity = createSlider(0, 16, 0, 1);
   clapDensity.position(10, 110);
   clapDensity.style('width', '80px');
 
-  bassDensity = createSlider(0, 16, 4, 1);
+  bassDensity = createSlider(0, 16, 0, 1);
   bassDensity.position(10, 140);
   bassDensity.style('width', '80px');
+
+  p1Density = createSlider(0, 16, 0, 1);
+  p1Density.position(10, 170);
+  p1Density.style('width', '80px');
+
+  p2Density = createSlider(0, 16, 0, 1);
+  p2Density.position(10, 200);
+  p2Density.style('width', '80px');
 
 
   //creates sliders for offset
   hhOff = createSlider(1, 17, 1, 1)
-  hhOff.position(10, 300);
+  hhOff.position(10, 420);
   hhOff.style('width', '80px');
 
   clapOff = createSlider(1, 17, 1, 1)
-  clapOff.position(10, 330);
+  clapOff.position(10, 450);
   clapOff.style('width', '80px');
 
   bassOff = createSlider(1, 17, 1, 1)
-  bassOff.position(10, 360);
+  bassOff.position(10, 480);
   bassOff.style('width', '80px');
+
+  p1Off = createSlider(1, 17, 1, 1)
+  p1Off.position(10, 510);
+  p1Off.style('width', '80px');
+
+  p2Off = createSlider(1, 17, 1, 1)
+  p2Off.position(10, 540);
+  p2Off.style('width', '80px');
 
 
   //creates tempo slider
   tempoSlider = createSlider(40, 240, 90, 1);
-  tempoSlider.position(10, 500);
+  tempoSlider.position(10, 680);
   tempoSlider.style('width', '80px');
 
   //hh dry button
   hhDry = createButton('hh dry');
-  hhDry.position(300, 400);
+  hhDry.position(300, 440);
   hhDry.mousePressed(hhDryToggle);
 
   let hhToggle = 0;
@@ -404,10 +441,24 @@ function setup() {
   bassSel.option('Kick 3');
   bassSel.changed(selectSoundFileBass);
 
+  p1Sel = createSelect();
+  p1Sel.position(300, 360);
+  p1Sel.option('Perc 1');
+  p1Sel.option('Perc 2');
+  p1Sel.option('Perc 3');
+  p1Sel.changed(selectSoundFileP1);
+
+  p2Sel = createSelect();
+  p2Sel.position(300, 380);
+  p2Sel.option('Perc 4');
+  p2Sel.option('Perc 5');
+  p2Sel.option('Perc 6');
+  p2Sel.changed(selectSoundFileP2);
+
   hhDelaySlider = createSlider(0, 1, 0.5, 0.01);
   hhDelaySlider.position(450, 300)
 
-  hhDelayAmpSlider = createSlider(0, 1, 0.5, 0.1);
+  hhDelayAmpSlider = createSlider(0, 1, 0, 0.1);
   hhDelayAmpSlider.position(450, 330)
 
   //hh delay 
@@ -422,7 +473,7 @@ function setup() {
   radio.position(450, 360)
 
   let delay = new p5.Delay();
-  delay.amp(1);
+  delay.amp(0);
   delay.delayTime(tempoSlider.value() / 600);
   delay.filter(7000);
   delay.drywet(1);
@@ -475,6 +526,20 @@ function setup() {
     }, bPat));
   }
 
+  function p1PhraseReset() {
+    drums.removePhrase("p1");
+    drums.addPhrase(new p5.Phrase('p1', (time) => {
+      p1.play(time);
+    }, p1Pat));
+  }
+
+  function p2PhraseReset() {
+    drums.removePhrase("p2");
+    drums.addPhrase(new p5.Phrase('p2', (time) => {
+      p2.play(time);
+    }, p2Pat));
+  }
+
 
   //changes hh sound file
   function selectSoundFileHh() {
@@ -519,6 +584,36 @@ function setup() {
     } else if (bassFile == 'Kick 3') {
       bass = bass3;
       bassPhraseReset();
+    }
+  }
+
+  //changes p1 sound file
+  function selectSoundFileP1() {
+    let p1File = p1Sel.value();
+    if (p1File == 'Perc 1') {
+      p1 = p1_1;
+      p1PhraseReset();
+    } else if (p1File == 'Perc 2') {
+      p1 = p1_2;
+      p1PhraseReset();
+    } else if (p1File == 'Perc 3') {
+      p1 = p1_3;
+      p1PhraseReset();
+    }
+  }
+
+  //changes p2 sound file
+  function selectSoundFileP2() {
+    let p2File = p2Sel.value();
+    if (p2File == 'Perc 4') {
+      p2 = p2_1;
+      p2PhraseReset();
+    } else if (p2File == 'Perc 5') {
+      p2 = p2_2;
+      p2PhraseReset();
+    } else if (p2File == 'Perc 6') {
+      p2 = p2_3;
+      p2PhraseReset();
     }
   }
 
@@ -585,6 +680,46 @@ function setup() {
     textUpdate();
   });
 
+  //updates p1 step length 
+  p1Step.elt.addEventListener('input', function () {
+
+    //changes pattern value according to step slider
+    if (p1Step.value() !== 0) {
+      if (p1Density.value() > p1Step.value()) {
+        euclidArrayP1 = euclidArray[p1Step.value()][p1Step.value()];
+      } else {
+        euclidArrayP1 = euclidArray[p1Step.value()][p1Density.value()];
+      }
+    } else {
+      euclidArrayP1 = euclidArray[p1Step.value()];
+    }
+
+    p1Pat = euclidArrayP1;
+
+    p1PhraseReset();
+    textUpdate();
+  });
+
+  //updates p2 step length 
+  p2Step.elt.addEventListener('input', function () {
+
+    //changes pattern value according to step slider
+    if (p2Step.value() !== 0) {
+      if (p2Density.value() > p2Step.value()) {
+        euclidArrayP2 = euclidArray[p2Step.value()][p2Step.value()];
+      } else {
+        euclidArrayP2 = euclidArray[p2Step.value()][p2Density.value()];
+      }
+    } else {
+      euclidArrayP2 = euclidArray[p2Step.value()];
+    }
+
+    p2Pat = euclidArrayP2;
+
+    p2PhraseReset();
+    textUpdate();
+  });
+
 
 
   //updates hh offset
@@ -641,6 +776,42 @@ function setup() {
     }
   });
 
+  //updates p1 offset
+  p1Off.elt.addEventListener('input', function () {
+
+    let current = euclidArray[p1Step.value()][p1Density.value()];
+
+    for (counter = 0; counter < p1Off.value(); counter++) {
+
+      var offset = counter % current.length;
+      console.log(offset);
+      euclidArrayP1 = current.slice(offset).concat(current.slice(0, offset));
+      console.log(euclidArrayHat.join(", "));
+
+      p1Pat = euclidArrayP1;
+      p1PhraseReset();
+      textUpdate();
+    }
+  });
+
+  //updates p2 offset
+  p2Off.elt.addEventListener('input', function () {
+
+    let current = euclidArray[p2Step.value()][p2Density.value()];
+
+    for (counter = 0; counter < p2Off.value(); counter++) {
+
+      var offset = counter % current.length;
+      console.log(offset);
+      euclidArrayP2 = current.slice(offset).concat(current.slice(0, offset));
+      console.log(euclidArrayP2.join(", "));
+
+      p2Pat = euclidArrayP2;
+      p2PhraseReset();
+      textUpdate();
+    }
+  });
+
 
 
   //updates hh density
@@ -689,6 +860,34 @@ function setup() {
     textUpdate();
   });
 
+  //updates p1 density
+  p1Density.elt.addEventListener('input', function () {
+
+    //changes pattern value according to density slider
+    if (p1Density.value() > p1Step.value()) {
+      p1Pat = euclidArray[p1Step.value()][p1Step.value()];
+    } else {
+      p1Pat = euclidArray[p1Step.value()][p1Density.value()];
+    }
+
+    p1PhraseReset();
+    textUpdate();
+  });
+
+  //updates p2 density
+  p2Density.elt.addEventListener('input', function () {
+
+    //changes pattern value according to density slider
+    if (p2Density.value() > p2Step.value()) {
+      p2Pat = euclidArray[p2Step.value()][p2Step.value()];
+    } else {
+      p2Pat = euclidArray[p2Step.value()][p2Density.value()];
+    }
+
+    p2PhraseReset();
+    textUpdate();
+  });
+
 
 
   //creates phrases for each instrument
@@ -704,6 +903,14 @@ function setup() {
     bass.play(time);
   }, bPat);
 
+  p1Phrase = new p5.Phrase('p1', (time) => {
+    p1.play(time);
+  }, p1Pat);
+
+  p2Phrase = new p5.Phrase('p2', (time) => {
+    p2.play(time);
+  }, p2Pat);
+
 
   //creates drum part
   drums = new p5.Part();
@@ -713,6 +920,8 @@ function setup() {
   drums.addPhrase(hPhrase);
   drums.addPhrase(cPhrase);
   drums.addPhrase(bPhrase);
+  drums.addPhrase(p1Phrase);
+  drums.addPhrase(p2Phrase);
   drums.addPhrase('seq', sequence, sPat);
 
   tempoSlider.input(() => {
@@ -777,6 +986,26 @@ function setup() {
       }
       ellipseStart += 20;
     }
+    ellipseStart = 310;
+    for (count = 0; count < p1Step.value(); count++) {
+      ellipse(ellipseStart, 185, 10);
+      if (p1Pat[count]) {
+        stroke(255);
+        ellipse(ellipseStart, 185, 10);
+        stroke(0);
+      }
+      ellipseStart += 20;
+    }
+    ellipseStart = 310;
+    for (count = 0; count < p2Step.value(); count++) {
+      ellipse(ellipseStart, 215, 10);
+      if (p2Pat[count]) {
+        stroke(255);
+        ellipse(ellipseStart, 215, 10);
+        stroke(0);
+      }
+      ellipseStart += 20;
+    }
 
     cnv.mouseClicked(stepClick);
 
@@ -786,16 +1015,22 @@ function setup() {
     text(`HH Density: ` + hhDensity.value(), 100, 100);
     text(`Clap Density: ` + clapDensity.value(), 100, 130);
     text(`Kick Density: ` + bassDensity.value(), 100, 160);
+    text(`Perc 1 Density: ` + p1Density.value(), 100, 190);
+    text(`Perc 2 Density: ` + p2Density.value(), 100, 220);
 
-    text(`HH Steps: ` + hhStep.value(), 100, 207);
-    text(`Clap Steps: ` + clapStep.value(), 100, 237);
-    text(`Kick Steps: ` + bassStep.value(), 100, 267);
+    text(`HH Steps: ` + hhStep.value(), 100, 267);
+    text(`Clap Steps: ` + clapStep.value(), 100, 297);
+    text(`Kick Steps: ` + bassStep.value(), 100, 327);
+    text(`Perc 1 Steps: ` + p1Step.value(), 100, 357);
+    text(`Perc 2 Steps: ` + p2Step.value(), 100, 387);
 
-    text(`HH Offset: ` + (hhOff.value() - 1), 100, 317);
-    text(`Clap Offset: ` + (clapOff.value() - 1), 100, 347);
-    text(`Kick Offset: ` + (bassOff.value() - 1), 100, 377);
+    text(`HH Offset: ` + (hhOff.value() - 1), 100, 437);
+    text(`Clap Offset: ` + (clapOff.value() - 1), 100, 467);
+    text(`Kick Offset: ` + (bassOff.value() - 1), 100, 497);
+    text(`Perc 1 Offset: ` + (bassOff.value() - 1), 100, 527);
+    text(`Perc 2 Offset: ` + (bassOff.value() - 1), 100, 557);
 
-    text(`Tempo: ` + tempoSlider.value() + ' BPM', 100, 517);
+    text(`Tempo: ` + tempoSlider.value() + ' BPM', 100, 697);
   }
 
   //handles step sequencing
@@ -823,6 +1058,18 @@ function setup() {
         newSlice[xp] = +!newSlice[xp];
         bPat = newSlice;
         bassPhraseReset();
+      }
+      if (yp == 3) {
+        newSlice = p1Pat.slice(0, p1Pat.length);
+        newSlice[xp] = +!newSlice[xp];
+        p1Pat = newSlice;
+        p1PhraseReset();
+      }
+      if (yp == 4) {
+        newSlice = p2Pat.slice(0, p2Pat.length);
+        newSlice[xp] = +!newSlice[xp];
+        p2Pat = newSlice;
+        p2PhraseReset();
       }
     }
     textUpdate()
@@ -878,7 +1125,7 @@ function keyPressed() {
 
 function draw() {
   background(0, 0, 0, 0);
-  fill(100, 0, 0);
-  var vol = amp.getLevel();
-  ellipse(200, 700, 200, vol * 200);
+  // fill(100, 0, 0);
+  // var vol = amp.getLevel();
+  // ellipse(200, 700, 200, vol * 200);
 }

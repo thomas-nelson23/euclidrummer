@@ -323,6 +323,15 @@ function setup() {
   p1 = p1_1;
   p2 = p2_1;
 
+  let playBtn = createDiv('click to start audio');
+  playBtn.position(500, 550);
+
+  userStartAudio().then(function() {
+    playBtn.remove();
+  });
+
+
+
   //sets starting pattern for each instrument (does not effect slider position!)
   hPat = euclidArray[16][0];
   cPat = euclidArray[16][0];

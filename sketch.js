@@ -297,7 +297,14 @@ let euclidArray = [
 
 
 function setup() {
-  let cnv = createCanvas(windowWidth, windowHeight);
+  let cnv = createCanvas(900, windowHeight);
+
+  let sliderOffset = windowWidth / 2;
+  sliderOffset -= 450;
+
+  let yOffSlider = 40;
+
+  yOff = 40;
 
   //loads sound files to variables for each instrument
   hh1 = loadSound('assets/hat.mp3', () => { });
@@ -333,176 +340,183 @@ function setup() {
 
   //creates sliders for step length
   hhStep = createSlider(0, 16, 16, 1)
-  hhStep.position(10, 250);
+  hhStep.position(190 + sliderOffset, 300 + yOff + yOffSlider);
   hhStep.style('width', '80px');
 
   clapStep = createSlider(0, 16, 16, 1)
-  clapStep.position(10, 280);
+  clapStep.position(190 + sliderOffset, 330 + yOff + yOffSlider);
   clapStep.style('width', '80px');
 
   bassStep = createSlider(0, 16, 16, 1)
-  bassStep.position(10, 310);
+  bassStep.position(190 + sliderOffset, 360 + yOff + yOffSlider);
   bassStep.style('width', '80px');
 
   p1Step = createSlider(0, 16, 16, 1)
-  p1Step.position(10, 340);
+  p1Step.position(190 + sliderOffset, 390 + yOff + yOffSlider);
   p1Step.style('width', '80px');
 
   p2Step = createSlider(0, 16, 16, 1)
-  p2Step.position(10, 370);
+  p2Step.position(190 + sliderOffset, 420 + yOff + yOffSlider);
   p2Step.style('width', '80px');
 
 
   //creates slider for euclidian density 0-16
   hhDensity = createSlider(0, 16, 0, 1);
-  hhDensity.position(10, 80);
+  hhDensity.position(420 + sliderOffset, 300 + yOff + yOffSlider);
   hhDensity.style('width', '80px');
 
   clapDensity = createSlider(0, 16, 0, 1);
-  clapDensity.position(10, 110);
+  clapDensity.position(420 + sliderOffset, 330 + yOff + yOffSlider);
   clapDensity.style('width', '80px');
 
   bassDensity = createSlider(0, 16, 0, 1);
-  bassDensity.position(10, 140);
+  bassDensity.position(420 + sliderOffset, 360 + yOff + yOffSlider);
   bassDensity.style('width', '80px');
 
   p1Density = createSlider(0, 16, 0, 1);
-  p1Density.position(10, 170);
+  p1Density.position(420 + sliderOffset, 390 + yOff + yOffSlider);
   p1Density.style('width', '80px');
 
   p2Density = createSlider(0, 16, 0, 1);
-  p2Density.position(10, 200);
+  p2Density.position(420 + sliderOffset, 420 + yOff + yOffSlider);
   p2Density.style('width', '80px');
 
 
   //creates sliders for offset
+
+
   hhOff = createSlider(1, 17, 1, 1)
-  hhOff.position(10, 420);
+  hhOff.position(640 + sliderOffset, 300 + yOff + yOffSlider);
   hhOff.style('width', '80px');
 
   clapOff = createSlider(1, 17, 1, 1)
-  clapOff.position(10, 450);
+  clapOff.position(640 + sliderOffset, 330 + yOff + yOffSlider);
   clapOff.style('width', '80px');
 
   bassOff = createSlider(1, 17, 1, 1)
-  bassOff.position(10, 480);
+  bassOff.position(640 + sliderOffset, 360 + yOff + yOffSlider);
   bassOff.style('width', '80px');
 
   p1Off = createSlider(1, 17, 1, 1)
-  p1Off.position(10, 510);
+  p1Off.position(640 + sliderOffset, 390 + yOff + yOffSlider);
   p1Off.style('width', '80px');
 
   p2Off = createSlider(1, 17, 1, 1)
-  p2Off.position(10, 540);
+  p2Off.position(640 + sliderOffset, 420 + yOff + yOffSlider);
   p2Off.style('width', '80px');
 
 
   //creates tempo slider
   tempoSlider = createSlider(40, 240, 90, 1);
-  tempoSlider.position(10, 680);
+  tempoSlider.position(520 + sliderOffset, 540 + yOffSlider);
   tempoSlider.style('width', '80px');
 
   //hh dry button
-  hhDry = createButton('hh dry');
-  hhDry.position(300, 440);
-  hhDry.mousePressed(hhDryToggle);
+  // hhDry = createButton('hh dry');
+  // hhDry.position(220, 220);
+  // hhDry.mousePressed(hhDryToggle);
 
-  let hhToggle = 0;
-  function hhDryToggle() {
-    if (hhToggle) {
-      hh.connect();
-    } else {
-      hh.disconnect();
-      hh.connect(delay);
-    }
-    hhToggle = +!hhToggle;
-  }
+  // let hhToggle = 0;
+  // function hhDryToggle() {
+  //   if (hhToggle) {
+  //     hh.connect();
+  //   } else {
+  //     hh.disconnect();
+  //     hh.connect(delay);
+  //   }
+  //   hhToggle = +!hhToggle;
+  // }
 
 
   //creates select elements for sound file selection
   hhSel = createSelect();
-  hhSel.position(300, 300);
+  hhSel.position(200 + sliderOffset, 86 + yOff);
   hhSel.option('HiHat 1');
   hhSel.option('HiHat 2');
   hhSel.option('HiHat 3');
   hhSel.changed(selectSoundFileHh);
 
   clapSel = createSelect();
-  clapSel.position(300, 320);
+  clapSel.position(200 + sliderOffset, 116 + yOff);
   clapSel.option('Clap 1');
   clapSel.option('Clap 2');
   clapSel.option('Clap 3');
   clapSel.changed(selectSoundFileClap);
 
   bassSel = createSelect();
-  bassSel.position(300, 340);
+  bassSel.position(200 + sliderOffset, 146 + yOff);
   bassSel.option('Kick 1');
   bassSel.option('Kick 2');
   bassSel.option('Kick 3');
   bassSel.changed(selectSoundFileBass);
 
   p1Sel = createSelect();
-  p1Sel.position(300, 360);
+  p1Sel.position(200 + sliderOffset, 176 + yOff);
   p1Sel.option('Perc 1');
   p1Sel.option('Perc 2');
   p1Sel.option('Perc 3');
   p1Sel.changed(selectSoundFileP1);
 
   p2Sel = createSelect();
-  p2Sel.position(300, 380);
+  p2Sel.position(200 + sliderOffset, 206 + yOff);
   p2Sel.option('Perc 4');
   p2Sel.option('Perc 5');
   p2Sel.option('Perc 6');
   p2Sel.changed(selectSoundFileP2);
 
-  hhDelaySlider = createSlider(0, 1, 0.5, 0.01);
-  hhDelaySlider.position(450, 300)
-
-  hhDelayAmpSlider = createSlider(0, 1, 0, 0.1);
-  hhDelayAmpSlider.position(450, 330)
 
   //hh delay 
-  radio = createRadio();
-  radio.option('1/16')
-  radio.option('1/8');
-  radio.option('1/8*');
-  radio.option('1/4');
-  radio.option('1/3')
-  radio.option('1/2');
-  radio.style('width', '60px');
-  radio.position(450, 360)
 
-  let delay = new p5.Delay();
-  delay.amp(0);
-  delay.delayTime(tempoSlider.value() / 600);
-  delay.filter(7000);
-  delay.drywet(1);
-  //hh.disconnect();
-  hh.connect(delay);
 
-  hhDelaySlider.elt.addEventListener('input', () => {
-    delay.delayTime(hhDelaySlider.value());
-  })
 
-  hhDelayAmpSlider.elt.addEventListener('input', () => {
-    delay.amp(hhDelayAmpSlider.value());
-  })
+  // hhDelaySlider = createSlider(0, 1, 0.5, 0.01);
+  // hhDelaySlider.position(450, 300)
 
-  radio.elt.addEventListener('input', () => {
-    if (radio.value() == '1/16') {
-      delay.delayTime(tempoSlider.value() / 600);
-    } else if (radio.value() == '1/8') {
-      delay.delayTime(tempoSlider.value() / 300);
-    } else if (radio.value() == '1/8*') {
-      delay.delayTime(tempoSlider.value() / 200);
-    } else if (radio.value() == '1/3') {
-      delay.delayTime(tempoSlider.value() / 225);
-    } else if (radio.value() == '1/4') {
-      delay.delayTime(tempoSlider.value() / 150);
-    } else if (radio.value() == '1/2') {
-      delay.delayTime(tempoSlider.value() / 75);
-    }
-  })
+  // hhDelayAmpSlider = createSlider(0, 1, 0, 0.1);
+  // hhDelayAmpSlider.position(450, 330)
+
+
+  // radio = createRadio();
+  // radio.option('1/16')
+  // radio.option('1/8');
+  // radio.option('1/8*');
+  // radio.option('1/4');
+  // radio.option('1/3')
+  // radio.option('1/2');
+  // radio.style('width', '60px');
+  // radio.position(450, 360)
+
+  // let delay = new p5.Delay();
+  // delay.amp(0);
+  // delay.delayTime(tempoSlider.value() / 600);
+  // delay.filter(7000);
+  // delay.drywet(1);
+  // //hh.disconnect();
+  // hh.connect(delay);
+
+  // hhDelaySlider.elt.addEventListener('input', () => {
+  //   delay.delayTime(hhDelaySlider.value());
+  // })
+
+  // hhDelayAmpSlider.elt.addEventListener('input', () => {
+  //   delay.amp(hhDelayAmpSlider.value());
+  // })
+
+  // radio.elt.addEventListener('input', () => {
+  //   if (radio.value() == '1/16') {
+  //     delay.delayTime(tempoSlider.value() / 600);
+  //   } else if (radio.value() == '1/8') {
+  //     delay.delayTime(tempoSlider.value() / 300);
+  //   } else if (radio.value() == '1/8*') {
+  //     delay.delayTime(tempoSlider.value() / 200);
+  //   } else if (radio.value() == '1/3') {
+  //     delay.delayTime(tempoSlider.value() / 225);
+  //   } else if (radio.value() == '1/4') {
+  //     delay.delayTime(tempoSlider.value() / 150);
+  //   } else if (radio.value() == '1/2') {
+  //     delay.delayTime(tempoSlider.value() / 75);
+  //   }
+  // })
 
 
   function hhPhraseReset() {
@@ -935,73 +949,86 @@ function setup() {
 
   function textUpdate() {
 
-    fill(0);
-    textSize(20);
-    stroke(0);
+
 
     background(100);
     //sequence grid
     strokeWeight(1);
+    stroke(0);
+
+    textSize(40);
+    text("EucliDrummer", 330, 70);
+
+    fill(0);
+    textSize(25);
+    text("Steps", 200, 350);
+    text("Density", 420, 350);
+    text("Offset", 650, 350);
+
+    fill(0);
+    textSize(20);
+    stroke(0);
+
     for (x = 300; x < 640; x += 20) {
-      line(x, 80, x, 230);
+      line(x, 80 + yOff, x, 230 + yOff);
     }
     strokeWeight(1.8);
     for (y = 80; y < 250; y += 30) {
-      line(300, y, 620, y);
+      line(300, y + yOff, 620, y + yOff);
     }
     strokeWeight(3)
     for (x = 300; x < 640; x += 80) {
-      line(x, 80, x, 230);
+      line(x, 80 + yOff, x, 230 + yOff);
     }
 
     //grid dots
     strokeWeight(1);
     let ellipseStart = 310;
     for (count = 0; count < hhStep.value(); count++) {
-      ellipse(ellipseStart, 95, 10);
+      ellipse(ellipseStart, 95 + yOff, 10);
       if (hPat[count]) {
         stroke(255);
-        ellipse(ellipseStart, 95, 10);
+        ellipse(ellipseStart, 95 + yOff, 10);
         stroke(0);
       }
       ellipseStart += 20;
     }
     ellipseStart = 310;
     for (count = 0; count < clapStep.value(); count++) {
-      ellipse(ellipseStart, 125, 10);
+      ellipse(ellipseStart, 125 + yOff, 10);
       if (cPat[count]) {
         stroke(255);
-        ellipse(ellipseStart, 125, 10);
+        ellipse(ellipseStart, 125 + yOff, 10);
         stroke(0);
       }
       ellipseStart += 20;
     }
     ellipseStart = 310;
     for (count = 0; count < bassStep.value(); count++) {
-      ellipse(ellipseStart, 155, 10);
+      ellipse(ellipseStart, 155 + yOff, 10);
       if (bPat[count]) {
         stroke(255);
-        ellipse(ellipseStart, 155, 10);
+        ellipse(ellipseStart, 155 + yOff, 10);
         stroke(0);
       }
       ellipseStart += 20;
     }
     ellipseStart = 310;
     for (count = 0; count < p1Step.value(); count++) {
-      ellipse(ellipseStart, 185, 10);
+      ellipse(ellipseStart, 185 + yOff, 10);
       if (p1Pat[count]) {
         stroke(255);
-        ellipse(ellipseStart, 185, 10);
+        ellipse(ellipseStart, 185 + yOff, 10);
         stroke(0);
       }
       ellipseStart += 20;
     }
     ellipseStart = 310;
     for (count = 0; count < p2Step.value(); count++) {
-      ellipse(ellipseStart, 215, 10);
+      ellipse(ellipseStart, 215 + yOff, 10);
       if (p2Pat[count]) {
         stroke(255);
-        ellipse(ellipseStart, 215, 10);
+        ellipse(ellipseStart, 215 + yOff, 10);
         stroke(0);
       }
       ellipseStart += 20;
@@ -1012,32 +1039,38 @@ function setup() {
     strokeWeight(0);
 
 
-    text(`HH Density: ` + hhDensity.value(), 100, 100);
-    text(`Clap Density: ` + clapDensity.value(), 100, 130);
-    text(`Kick Density: ` + bassDensity.value(), 100, 160);
-    text(`Perc 1 Density: ` + p1Density.value(), 100, 190);
-    text(`Perc 2 Density: ` + p2Density.value(), 100, 220);
 
-    text(`HH Steps: ` + hhStep.value(), 100, 267);
-    text(`Clap Steps: ` + clapStep.value(), 100, 297);
-    text(`Kick Steps: ` + bassStep.value(), 100, 327);
-    text(`Perc 1 Steps: ` + p1Step.value(), 100, 357);
-    text(`Perc 2 Steps: ` + p2Step.value(), 100, 387);
+    text(hhDensity.value() + " / " + hhStep.value(), 640, 140);
+    text(clapDensity.value() + " / " + clapStep.value(), 640, 170);
+    text(bassDensity.value() + " / " + bassStep.value(), 640, 200);
+    text(p1Density.value() + " / " + p2Step.value(), 640, 230);
+    text(p2Density.value() + " / " + p2Step.value(), 640, 260);
 
-    text(`HH Offset: ` + (hhOff.value() - 1), 100, 437);
-    text(`Clap Offset: ` + (clapOff.value() - 1), 100, 467);
-    text(`Kick Offset: ` + (bassOff.value() - 1), 100, 497);
-    text(`Perc 1 Offset: ` + (bassOff.value() - 1), 100, 527);
-    text(`Perc 2 Offset: ` + (bassOff.value() - 1), 100, 557);
 
-    text(`Tempo: ` + tempoSlider.value() + ' BPM', 100, 697);
+    text((hhOff.value() - 1), 740, 359 + yOffSlider);
+    text((clapOff.value() - 1), 740, 389 + yOffSlider);
+    text((bassOff.value() - 1), 740, 419 + yOffSlider);
+    text((p1Off.value() - 1), 740, 449 + yOffSlider);
+    text((p2Off.value() - 1), 740, 479 + yOffSlider);
+
+
+    text("HiHat", 110, 400);
+    text("Clap", 110, 430);
+    text("Kick", 110, 460);
+    text("Perc 1", 110, 490);
+    text("Perc 2", 110, 520);
+
+
+
+    text("Tempo: " + tempoSlider.value() + " BPM", 360, 600)
+
   }
 
   //handles step sequencing
   function stepClick() {
     let xp = mouseX - 300;
-    let yp = mouseY - 80;
-    if (mouseX > 300 && mouseX < 620 && mouseY > 80 && mouseY < 230) {
+    let yp = mouseY - 80 - yOff;
+    if (mouseX > 300 && mouseX < 620 && mouseY > 80 + yOff && mouseY < 230 + yOff) {
       xp = floor(xp / 20);
       yp = floor(yp / 30);
 
@@ -1091,14 +1124,14 @@ function setup() {
 
     strokeWeight(2);
     stroke(0, 200, 200);
-    line(300 + hhPlayMover, 80, 300 + hhPlayMover, 110);
+    // line(300 + hhPlayMover, 80, 300 + hhPlayMover, 110);
     stroke(0);
-    if (beatCountHat > 0) {
-      line(300 + hhResetMover, 80, 300 + hhResetMover, 110);
-    } else {
-      line(280 + hhResetMover2, 80, 280 + hhResetMover2, 110);
-    }
-    beatCountHat++;
+    // if (beatCountHat > 0) {
+    //   line(300 + hhResetMover, 80, 300 + hhResetMover, 110);
+    // } else {
+    //   line(280 + hhResetMover2, 80, 280 + hhResetMover2, 110);
+    // }
+    // beatCountHat++;
 
   }
 

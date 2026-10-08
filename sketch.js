@@ -1,40 +1,27 @@
-// EucliDrummer: a five-track Euclidean drum machine built on p5.js and p5.sound.
+// EucliDrummer: a six-track Euclidean drum machine built on p5.js and p5.sound.
 //
 // Each track has a step length, a density (number of hits spread evenly across
 // the steps) and an offset (rotation of the pattern). Patterns can also be edited
 // by clicking pads in the channel rack. Press the spacebar to start and stop playback.
 //
-// p5 is only used for audio here; the interface is plain HTML (index.html, style.css)
-// with rotary knobs from knob.js.
+// Every track is played by a drum synthesizer from synths.js rather than a sample.
+// p5 is used for sequencing and the master output; the interface is plain HTML
+// (index.html, style.css) with rotary knobs from knob.js.
 
 const MAX_STEPS = 16;
 const DEFAULT_BPM = 90;
 const DEFAULT_VOLUME = 0.8;
 
-// One entry per track, in display order. `phrase` names the p5.Phrase for the track,
-// `color` tints its rack row, and `groove` is the pattern loaded on start (double-clicking
-// a knob returns it to this value).
+// One entry per track, in display order. `id` names the p5.Phrase for the track, `synth`
+// picks its voice from SYNTHS and `preset` the sound it starts with, `color` tints its rack
+// row, and `groove` is the pattern loaded on start (double-clicking a knob returns to it).
 const TRACKS = [
-  {
-    phrase: 'bass', label: 'Kick', files: ['bass', 'bass2', 'bass3'], options: ['Kick 1', 'Kick 2', 'Kick 3'],
-    color: '#ff8a3d', groove: { steps: 16, density: 4, offset: 0 }
-  },
-  {
-    phrase: 'clap', label: 'Clap', files: ['clap', 'clap2', 'clap3'], options: ['Clap 1', 'Clap 2', 'Clap 3'],
-    color: '#ff5d7a', groove: { steps: 16, density: 2, offset: 4 }
-  },
-  {
-    phrase: 'hh', label: 'HiHat', files: ['hat', 'hh2', 'hh3'], options: ['HiHat 1', 'HiHat 2', 'HiHat 3'],
-    color: '#ffd23f', groove: { steps: 16, density: 8, offset: 0 }
-  },
-  {
-    phrase: 'p1', label: 'Perc 1', files: ['p1-1', 'p1-2', 'p1-3'], options: ['Perc 1', 'Perc 2', 'Perc 3'],
-    color: '#3ddbb8', groove: { steps: 12, density: 5, offset: 0 }
-  },
-  {
-    phrase: 'p2', label: 'Perc 2', files: ['p2-1', 'p2-2', 'p2-3'], options: ['Perc 4', 'Perc 5', 'Perc 6'],
-    color: '#a78bfa', groove: { steps: 7, density: 3, offset: 2 }
-  },
+  { id: 'kick', label: 'Kick', synth: 'kick', preset: '808', color: '#ff8a3d', groove: { steps: 16, density: 4, offset: 0 } },
+  { id: 'snare', label: 'Snare', synth: 'snare', preset: 'Classic', color: '#ff5d7a', groove: { steps: 16, density: 2, offset: 4 } },
+  { id: 'clap', label: 'Clap', synth: 'clap', preset: 'Classic', color: '#e879f9', groove: { steps: 16, density: 3, offset: 7 } },
+  { id: 'hh', label: 'HiHat', synth: 'hihat', preset: 'Closed', color: '#ffd23f', groove: { steps: 16, density: 8, offset: 0 } },
+  { id: 'p1', label: 'Perc 1', synth: 'perc', preset: 'Conga', color: '#3ddbb8', groove: { steps: 12, density: 5, offset: 0 } },
+  { id: 'p2', label: 'Perc 2', synth: 'perc', preset: 'Rim', color: '#a78bfa', groove: { steps: 7, density: 3, offset: 2 } },
 ];
 
 // euclidArray[steps][hits] is the pattern with `hits` onsets spread over `steps` steps.
@@ -317,6 +304,7 @@ const euclidArray = [
 ];
 
 let drums; // p5.Part that drives every track's phrase
+let synthBus; // gentle limiter that every track's synth feeds, ahead of p5's master output
 let amp; // master level, for the meter
 let tempoBpm = DEFAULT_BPM;
 let playing = false;
@@ -332,22 +320,30 @@ function euclidPattern(steps, density, offset) {
   return base.slice(shift).concat(base.slice(0, shift));
 }
 
-function preload() {
-  for (const track of TRACKS) {
-    track.sounds = track.files.map((file) => loadSound(`assets/${file}.mp3`));
-  }
-}
-
 function setup() {
   noCanvas();
   amp = new p5.Amplitude(0.8);
   drums = new p5.Part();
 
+  const ctx = getAudioContext();
+  synthBus = ctx.createDynamicsCompressor();
+  synthBus.threshold.value = -6;
+  synthBus.knee.value = 6;
+  synthBus.ratio.value = 8;
+  synthBus.attack.value = 0.002;
+  synthBus.release.value = 0.12;
+  synthBus.connect(p5.soundOut.input);
+
   for (const track of TRACKS) {
-    Object.assign(track, track.groove, { sound: track.sounds[0], volume: DEFAULT_VOLUME, muted: false });
+    Object.assign(track, track.groove, { volume: DEFAULT_VOLUME, muted: false });
+    track.voice = SYNTHS[track.synth];
+    track.params = Object.assign({}, track.voice.presets[track.preset]);
+    track.out = ctx.createGain();
+    track.out.connect(synthBus);
     track.pattern = euclidPattern(track.steps, track.density, track.offset);
-    drums.addPhrase(new p5.Phrase(track.phrase, (time) => {
-      if (!track.muted) track.sound.play(time);
+    // p5.sound calls a phrase slightly ahead of time with the delay until the step is due.
+    drums.addPhrase(new p5.Phrase(track.id, (secondsFromNow) => {
+      if (!track.muted) playTrack(track, secondsFromNow);
     }, track.pattern));
     applyVolume(track);
   }
@@ -360,6 +356,18 @@ function setup() {
   buildRack();
   buildTransport();
   document.getElementById('loading').remove();
+}
+
+function playTrack(track, secondsFromNow = 0) {
+  const ctx = getAudioContext();
+  track.voice.play(ctx, track.out, ctx.currentTime + Math.max(0, secondsFromNow), track.params);
+}
+
+// Plays a track once right away, as when its name is clicked.
+async function preview(track) {
+  await userStartAudio();
+  playTrack(track, 0.005);
+  flash(track);
 }
 
 function draw() {
@@ -384,6 +392,7 @@ function buildRack() {
     const row = document.createElement('div');
     row.className = 'channel';
     row.style.setProperty('--ch', track.color);
+    const presets = Object.keys(track.voice.presets);
     row.innerHTML = `
       <button class="mute-led on" title="Mute ${track.label}" aria-pressed="true"
         aria-label="${track.label} on"></button>
@@ -393,9 +402,16 @@ function buildRack() {
           <span class="channel-num">${index + 1}</span>
           <span class="channel-label">${track.label}</span>
         </button>
-        <select class="sample-select" aria-label="${track.label} sample">
-          ${track.options.map((option, i) => `<option value="${i}">${option}</option>`).join('')}
-        </select>
+        <div class="preset-line">
+          <select class="preset-select" aria-label="${track.label} preset">
+            ${presets.map((name) => `<option${name === track.preset ? ' selected' : ''}>${name}</option>`).join('')}
+            <option value="" disabled>Custom</option>
+          </select>
+          <button class="synth-toggle" aria-expanded="false" aria-controls="synth-${track.id}"
+            title="Show ${track.label} synth" aria-label="${track.label} synth settings">
+            <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 1v10M6 1v10M10 1v10" /><rect x="0.5" y="6" width="3" height="2" rx="0.5" /><rect x="4.5" y="2.5" width="3" height="2" rx="0.5" /><rect x="8.5" y="7.5" width="3" height="2" rx="0.5" /></svg>
+          </button>
+        </div>
       </div>
       <div class="knob-slot steps-slot" data-label="Steps"></div>
       <div class="knob-slot density-slot" data-label="Density"></div>
@@ -414,14 +430,23 @@ function buildRack() {
       row.classList.toggle('muted', track.muted);
     });
 
-    row.querySelector('.channel-name').addEventListener('click', async () => {
-      await userStartAudio();
-      track.sound.play();
-      flash(track);
+    row.querySelector('.channel-name').addEventListener('click', () => preview(track));
+
+    buildSynthPanel(track, list);
+    const presetSelect = row.querySelector('.preset-select');
+    presetSelect.addEventListener('change', () => {
+      Object.assign(track.params, track.voice.presets[presetSelect.value]);
+      for (const param of track.voice.params) track.paramKnobs[param.key].set(track.params[param.key], true);
+      preview(track);
     });
 
-    row.querySelector('.sample-select').addEventListener('change', (e) => {
-      track.sound = track.sounds[Number(e.target.value)];
+    const toggle = row.querySelector('.synth-toggle');
+    toggle.addEventListener('click', () => {
+      const open = toggle.getAttribute('aria-expanded') !== 'true';
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.title = `${open ? 'Hide' : 'Show'} ${track.label} synth`;
+      row.classList.toggle('open', open);
+      track.panel.hidden = !open;
     });
 
     track.volumeKnob = createKnob(row.querySelector('.vol-slot'), {
@@ -484,14 +509,45 @@ function buildRack() {
   });
 }
 
+// The synth panel that opens under a channel row: one knob per synth parameter.
+function buildSynthPanel(track, list) {
+  const panel = document.createElement('div');
+  panel.className = 'synth-panel';
+  panel.id = `synth-${track.id}`;
+  panel.hidden = true;
+  panel.style.setProperty('--ch', track.color);
+  panel.setAttribute('role', 'group');
+  panel.setAttribute('aria-label', `${track.label} synth`);
+  panel.innerHTML = `<span class="synth-name">${track.synth} synth</span>`;
+  list.appendChild(panel);
+  track.panel = panel;
+
+  const presetSelect = track.row.querySelector('.preset-select');
+  track.paramKnobs = {};
+  for (const param of track.voice.params) {
+    const slot = document.createElement('div');
+    slot.className = 'knob-slot synth-slot';
+    slot.dataset.label = param.label;
+    panel.appendChild(slot);
+    track.paramKnobs[param.key] = createKnob(slot, {
+      label: `${track.label} ${param.label.toLowerCase()}`, min: param.min, max: param.max, step: param.step,
+      value: track.params[param.key], format: (v) => formatParam(param, v),
+      onChange: (v) => {
+        track.params[param.key] = v;
+        presetSelect.value = ''; // shows "Custom"
+      }
+    });
+  }
+}
+
 function applyVolume(track) {
-  for (const sound of track.sounds) sound.setVolume(track.volume);
+  track.out.gain.value = track.volume;
 }
 
 // Swaps in a new pattern for a track and redraws its row.
 function setPattern(track, pattern) {
   track.pattern = pattern;
-  drums.replaceSequence(track.phrase, pattern);
+  drums.replaceSequence(track.id, pattern);
   renderTrack(track);
 }
 

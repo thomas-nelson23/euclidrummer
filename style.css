@@ -505,7 +505,14 @@ kbd {
   }
 }
 
-.sample-select {
+.preset-line {
+  display: flex;
+  gap: 3px;
+}
+
+.preset-select {
+  flex: 1;
+  min-width: 0;
   height: 18px;
   padding: 0 18px 0 6px;
   border: 1px solid var(--edge);
@@ -519,12 +526,105 @@ kbd {
   cursor: pointer;
 }
 
-.sample-select:hover {
+.preset-select:hover {
   color: var(--text-bright);
 }
 
-.sample-select option {
+.preset-select option {
   background: var(--panel-3);
+}
+
+.synth-toggle {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 20px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid var(--edge);
+  border-radius: 3px;
+  background: var(--panel-3);
+}
+
+.synth-toggle svg {
+  width: 11px;
+  height: 11px;
+  fill: var(--text-dim);
+  stroke: var(--text-dim);
+  stroke-width: 1;
+}
+
+.synth-toggle:hover svg {
+  fill: var(--text-bright);
+  stroke: var(--text-bright);
+}
+
+.synth-toggle[aria-expanded='true'] {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--edge));
+}
+
+.synth-toggle[aria-expanded='true'] svg {
+  fill: var(--accent);
+  stroke: var(--accent);
+}
+
+/* ---------- synth panel (opens under a channel row) ---------- */
+
+.channel.open {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.synth-panel {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px 8px 78px;
+  border-radius: 0 0 var(--radius) var(--radius);
+  background: var(--panel-3);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.35);
+}
+
+.synth-panel[hidden] {
+  display: none;
+}
+
+.synth-panel::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 6px;
+  width: 3px;
+  border-radius: 0 0 2px 0;
+  background: var(--ch);
+  opacity: 0.85;
+}
+
+.synth-name {
+  width: 156px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.synth-slot {
+  flex-direction: column;
+  align-items: center;
+  width: 54px;
+}
+
+.synth-slot::before {
+  content: attr(data-label);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
 }
 
 /* ---------- step pads ---------- */
@@ -816,6 +916,16 @@ kbd {
 
   .pad:nth-child(4n + 1):not(:first-child) {
     margin-left: 4px;
+  }
+
+  .synth-panel {
+    justify-content: space-around;
+    gap: 6px;
+    padding: 8px 6px;
+  }
+
+  .synth-name {
+    display: none;
   }
 }
 

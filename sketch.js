@@ -16,16 +16,16 @@ const DEFAULT_VOLUME = 0.8;
 // a knob returns it to this value).
 const TRACKS = [
   {
-    phrase: 'hh', label: 'HiHat', files: ['hat', 'hh2', 'hh3'], options: ['HiHat 1', 'HiHat 2', 'HiHat 3'],
-    color: '#ffd23f', groove: { steps: 16, density: 8, offset: 0 }
+    phrase: 'bass', label: 'Kick', files: ['bass', 'bass2', 'bass3'], options: ['Kick 1', 'Kick 2', 'Kick 3'],
+    color: '#ff8a3d', groove: { steps: 16, density: 4, offset: 0 }
   },
   {
     phrase: 'clap', label: 'Clap', files: ['clap', 'clap2', 'clap3'], options: ['Clap 1', 'Clap 2', 'Clap 3'],
     color: '#ff5d7a', groove: { steps: 16, density: 2, offset: 4 }
   },
   {
-    phrase: 'bass', label: 'Kick', files: ['bass', 'bass2', 'bass3'], options: ['Kick 1', 'Kick 2', 'Kick 3'],
-    color: '#ff8a3d', groove: { steps: 16, density: 4, offset: 0 }
+    phrase: 'hh', label: 'HiHat', files: ['hat', 'hh2', 'hh3'], options: ['HiHat 1', 'HiHat 2', 'HiHat 3'],
+    color: '#ffd23f', groove: { steps: 16, density: 8, offset: 0 }
   },
   {
     phrase: 'p1', label: 'Perc 1', files: ['p1-1', 'p1-2', 'p1-3'], options: ['Perc 1', 'Perc 2', 'Perc 3'],
@@ -508,13 +508,19 @@ function toggleStep(track, step) {
 }
 
 function renderTrack(track) {
+  // Steps that differ from the generated Euclidean pattern were toggled by hand.
+  const generated = euclidPattern(track.steps, track.density, track.offset);
   track.pads.forEach((pad, i) => {
     const inRange = i < track.steps;
     const on = inRange && track.pattern[i] === 1;
+    const edited = inRange && track.pattern[i] !== generated[i];
     pad.disabled = !inRange;
     pad.classList.toggle('out', !inRange);
     pad.classList.toggle('on', on);
+    pad.classList.toggle('added', edited && on);
+    pad.classList.toggle('removed', edited && !on);
     pad.setAttribute('aria-pressed', String(on));
+    pad.setAttribute('aria-label', `${track.label} step ${i + 1}${edited ? ' (edited by hand)' : ''}`);
   });
   const hits = track.steps ? track.pattern.reduce((a, b) => a + b, 0) : 0;
   track.row.querySelector('.ratio b').textContent = hits;

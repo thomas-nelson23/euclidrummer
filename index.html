@@ -5,15 +5,83 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EucliDrummer</title>
-  <script src="p5.js"></script>
-  <script src="p5.dom.js"></script>
-  <script src="p5.sound.js"></script>
-  <script src="sketch.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&family=Share+Tech+Mono&display=swap">
   <link rel="stylesheet" href="style.css">
+  <script src="p5.js"></script>
+  <script src="p5.sound.js"></script>
+  <script src="knob.js"></script>
+  <script src="sketch.js"></script>
 </head>
 
 <body>
+  <header class="toolbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-name">Eucli<b>Drummer</b></span>
+    </div>
 
+    <div class="hint-bar" id="hint">Press <kbd>Space</kbd> or the play button to start</div>
+
+    <div class="transport" role="group" aria-label="Transport">
+      <button class="t-btn t-play" id="playBtn" aria-label="Play" title="Play / pause (Space)">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path class="i-play" d="M4 2.5v11l9-5.5z" /><path class="i-pause" d="M3.5 2.5h3.2v11H3.5zM9.3 2.5h3.2v11H9.3z" /></svg>
+      </button>
+      <button class="t-btn t-stop" id="stopBtn" aria-label="Stop" title="Stop">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="3" width="10" height="10" rx="1" /></svg>
+      </button>
+
+      <div class="lcd tempo" id="tempo" role="slider" tabindex="0" aria-label="Tempo" aria-valuemin="40"
+        aria-valuemax="240" title="Tempo: drag up/down, scroll, or use arrow keys">
+        <span class="lcd-value" id="tempoValue">90.000</span>
+        <span class="lcd-label">BPM</span>
+      </div>
+
+      <div class="lcd position">
+        <span class="lcd-value" id="position">1:01</span>
+        <span class="lcd-label">B:ST</span>
+      </div>
+
+      <div class="master">
+        <div class="knob-slot" id="masterKnob"></div>
+        <div class="meter" aria-hidden="true"><span id="meterL"></span><span id="meterR"></span></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <section class="window rack" aria-label="Channel rack">
+      <div class="window-title">
+        <span class="window-icon" aria-hidden="true"></span>
+        <span>Channel rack</span>
+        <span class="window-sub">Euclidean</span>
+        <button class="ghost-btn" id="clearBtn" title="Clear every pattern">Clear</button>
+      </div>
+
+      <div class="rack-scroll">
+        <div class="rack-head" aria-hidden="true">
+          <span class="h-mute"></span>
+          <span class="h-vol">Vol</span>
+          <span class="h-name">Channel</span>
+          <span class="h-knob">Steps</span>
+          <span class="h-knob">Density</span>
+          <span class="h-knob">Offset</span>
+          <span class="h-steps">
+            <span class="step-leds" id="stepLeds"></span>
+          </span>
+          <span class="h-ratio">Hits</span>
+        </div>
+        <div id="channels"></div>
+      </div>
+    </section>
+
+    <p class="footnote">Drag knobs up and down (Shift for fine control, double-click to reset). Click pads to
+      add or remove hits by hand.</p>
+  </main>
+
+  <div class="loading" id="loading">Loading samples…</div>
 </body>
 
 </html>

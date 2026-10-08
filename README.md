@@ -50,11 +50,11 @@ EucliDrummer stores these patterns as a precomputed lookup table (`euclidArray` 
 | Path | What it is |
 | --- | --- |
 | `index.html` | The page. Loads the p5 libraries and the sketch. |
-| `sketch.js` | All of the app: sample loading, sliders and dropdowns, the step grid, the Euclidean pattern table and playback. |
+| `sketch.js` | The whole app: sample loading, sliders and dropdowns, the step grid, the Euclidean pattern table and playback. |
 | `style.css` | Page styling (black background, centered canvas). |
 | `assets/` | The drum samples as MP3s: three each for hihat, clap, kick, Perc 1 (`p1-*`) and Perc 2 (`p2-*`). |
 | `p5.js`, `p5.dom.js`, `p5.sound.js` | Bundled copies of p5.js 0.9.0 and p5.sound 0.3.11. |
 
 ## Adding or replacing samples
 
-Drop an MP3 into `assets/`, then point one of the `loadSound(...)` calls near the top of `setup()` in `sketch.js` at it. Each track has three slots (for example `hh1`, `hh2`, `hh3`), and its dropdown switches between them.
+Drop an MP3 into `assets/`, then change one of that track's sample file names in `sketch.js` to point at it. Each track has three sample slots, and its dropdown switches between them.

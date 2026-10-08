@@ -6,7 +6,7 @@ EucliDrummer is a browser drum machine built with [p5.js](https://p5js.org/) and
 
 ## Features
 
-- Five tracks: HiHat, Clap, Kick, Perc 1 and Perc 2.
+- Five tracks: Kick, Clap, HiHat, Perc 1 and Perc 2.
 - A dark, DAW-style interface inspired by FL Studio's channel rack, with rotary knobs, lit step pads, a running playhead and a tempo display.
 - Per-track Euclidean controls:
   - **Steps** sets the pattern length (0 to 16 steps).
@@ -38,7 +38,7 @@ Then open <http://localhost:8000> in your browser. In VS Code, the Live Server e
 1. Press **Space** or the green play button to start the loop. Space again stops it; the play button pauses. Browsers only allow audio after you interact with the page, and either of these counts.
 2. Turn a track's **Density** knob to add or remove hits. Each track starts with a groove loaded, and **Clear** in the rack's title bar empties every pattern.
 3. Turn **Steps** to make a track loop over fewer steps, and **Offset** to shift where its hits land. Tracks with different step counts drift against each other, which is where the polyrhythms come from.
-4. Click pads to add or remove individual hits on top of the generated pattern.
+4. Click pads to add or remove individual hits on top of the generated pattern. Hits you add by hand light up blue instead of white, and generated hits you remove get a blue outline, so you can always tell your edits apart from the Euclidean pattern.
 5. Pick a different sample from a track's dropdown, use the green light to mute it, and the small knob beside it for its volume.
 6. Set the speed by dragging the **BPM** display up or down, scrolling over it, or focusing it and using the arrow keys. Double-click it to go back to 90.
 

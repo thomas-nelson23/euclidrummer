@@ -21,6 +21,8 @@
   --pad-alt: #6b5960;
   --pad-on: #e4e9ec;
   --pad-on-alt: #f1dfe3;
+  --manual: #4cc3ff;
+  --manual-glow: rgba(76, 195, 255, 0.55);
   --radius: 4px;
   --font: 'Barlow Semi Condensed', 'Arial Narrow', 'Segoe UI', system-ui, sans-serif;
   --mono: 'Share Tech Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
@@ -573,6 +575,45 @@ kbd {
 .pad.on.now {
   background: var(--ch);
   box-shadow: 0 0 12px var(--ch);
+}
+
+/* Hits added by hand light up in their own colour; Euclidean hits removed by hand get an outline. */
+.pad.on.added,
+.pad.alt.on.added {
+  background: linear-gradient(#a6e3ff, var(--manual));
+  border-color: #1d5f80;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 0 7px var(--manual-glow);
+}
+
+.pad.on.added.now {
+  background: #c9efff;
+  box-shadow: 0 0 14px var(--manual);
+}
+
+.pad.removed {
+  box-shadow: inset 0 0 0 2px #22292d, inset 0 0 0 3px var(--manual);
+  background-image: none;
+}
+
+.legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 6px;
+  white-space: nowrap;
+}
+
+.legend-swatch {
+  width: 12px;
+  height: 14px;
+  border-radius: 2px;
+  background: linear-gradient(#a6e3ff, var(--manual));
+  box-shadow: 0 0 5px var(--manual-glow);
+}
+
+.legend-swatch.removed {
+  background: var(--pad);
+  box-shadow: inset 0 0 0 1px #22292d, inset 0 0 0 2px var(--manual);
 }
 
 .ratio {

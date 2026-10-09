@@ -1,325 +1,105 @@
-// EucliDrummer: a five-track Euclidean drum machine built on p5.js and p5.sound.
+// EucliDrummer: a six-track Euclidean drum machine.
 //
 // Each track has a step length, a density (number of hits spread evenly across
 // the steps) and an offset (rotation of the pattern). Patterns can also be edited
 // by clicking pads in the channel rack. Press the spacebar to start and stop playback.
 //
-// p5 is only used for audio here; the interface is plain HTML (index.html, style.css)
-// with rotary knobs from knob.js.
+// Every track is played by a drum synthesizer from synths.js. Sequencing, mixing and
+// metering use the Web Audio API directly; the interface is plain HTML (index.html,
+// style.css) with rotary knobs from knob.js.
 
 const MAX_STEPS = 16;
 const DEFAULT_BPM = 90;
 const DEFAULT_VOLUME = 0.8;
 
-// One entry per track, in display order. `phrase` names the p5.Phrase for the track,
-// `color` tints its rack row, and `groove` is the pattern loaded on start (double-clicking
-// a knob returns it to this value).
+// One entry per track, in display order. `id` names the track's synth panel, `synth`
+// picks its voice from SYNTHS and `preset` the sound it starts with, `color` tints its rack
+// row, and `groove` is the pattern loaded on start (double-clicking a knob returns to it).
 const TRACKS = [
-  {
-    phrase: 'bass', label: 'Kick', files: ['bass', 'bass2', 'bass3'], options: ['Kick 1', 'Kick 2', 'Kick 3'],
-    color: '#ff8a3d', groove: { steps: 16, density: 4, offset: 0 }
-  },
-  {
-    phrase: 'clap', label: 'Clap', files: ['clap', 'clap2', 'clap3'], options: ['Clap 1', 'Clap 2', 'Clap 3'],
-    color: '#ff5d7a', groove: { steps: 16, density: 2, offset: 4 }
-  },
-  {
-    phrase: 'hh', label: 'HiHat', files: ['hat', 'hh2', 'hh3'], options: ['HiHat 1', 'HiHat 2', 'HiHat 3'],
-    color: '#ffd23f', groove: { steps: 16, density: 8, offset: 0 }
-  },
-  {
-    phrase: 'p1', label: 'Perc 1', files: ['p1-1', 'p1-2', 'p1-3'], options: ['Perc 1', 'Perc 2', 'Perc 3'],
-    color: '#3ddbb8', groove: { steps: 12, density: 5, offset: 0 }
-  },
-  {
-    phrase: 'p2', label: 'Perc 2', files: ['p2-1', 'p2-2', 'p2-3'], options: ['Perc 4', 'Perc 5', 'Perc 6'],
-    color: '#a78bfa', groove: { steps: 7, density: 3, offset: 2 }
-  },
+  { id: 'kick', label: 'Kick', synth: 'kick', preset: '808', color: '#ff8a3d', groove: { steps: 16, density: 4, offset: 0 } },
+  { id: 'snare', label: 'Snare', synth: 'snare', preset: 'Classic', color: '#ff5d7a', groove: { steps: 16, density: 2, offset: 4 } },
+  { id: 'clap', label: 'Clap', synth: 'clap', preset: 'Classic', color: '#e879f9', groove: { steps: 16, density: 3, offset: 7 } },
+  { id: 'hh', label: 'HiHat', synth: 'hihat', preset: 'Closed', color: '#ffd23f', groove: { steps: 16, density: 8, offset: 0 } },
+  { id: 'p1', label: 'Perc 1', synth: 'perc', preset: 'Conga', color: '#3ddbb8', groove: { steps: 12, density: 5, offset: 0 } },
+  { id: 'p2', label: 'Perc 2', synth: 'perc', preset: 'Rim', color: '#a78bfa', groove: { steps: 7, density: 3, offset: 2 } },
 ];
 
-// euclidArray[steps][hits] is the pattern with `hits` onsets spread over `steps` steps.
-const euclidArray = [
 
-  //0
-  [0],
-
-
-  //1
-  [
-    [0],
-    [1],
+// EUCLID[steps][hits] is the pattern with `hits` onsets spread over `steps` steps.
+const EUCLID = [
+  /* 0 */ ['0'],
+  /* 1 */ ['0', '1'],
+  /* 2 */ ['00', '10', '11'],
+  /* 3 */ ['000', '100', '110', '111'],
+  /* 4 */ ['0000', '1000', '1010', '1110', '1111'],
+  /* 5 */ ['00000', '10000', '10100', '10101', '11110', '11111'],
+  /* 6 */ ['000000', '100000', '100100', '101010', '110110', '111110', '111111'],
+  /* 7 */ ['0000000', '1000000', '1001000', '1010100', '1010101', '1101101', '1111110', '1111111'],
+  /* 8 */ ['00000000', '10000000', '10001000', '10010010', '10101010', '10110110', '11101110', '11111110', '11111111'],
+  /* 9 */ [
+    '000000000', '100000000', '100010000', '100100100',
+    '101010100', '101010101', '110110110', '111011101',
+    '111111110', '111111111',
   ],
-
-
-  //2
-  [
-    [0, 0],
-
-    [1, 0],
-    [1, 1],
+  /* 10 */ [
+    '0000000000', '1000000000', '1000010000', '1001001000',
+    '1010010100', '1010101010', '1010110101', '1101101101',
+    '1111011110', '1111111110', '1111111111',
   ],
-
-
-  //3
-  [
-    [0, 0, 0],
-
-    [1, 0, 0],
-    [1, 1, 0],
-    [1, 1, 1],
+  /* 11 */ [
+    '00000000000', '10000000000', '10000100000', '10001000100',
+    '10010010010', '10101010100', '10101010101', '10110110110',
+    '11011101110', '11110111101', '11111111110', '11111111111',
   ],
-
-
-  //4
-  [
-    [0, 0, 0, 0],
-
-    [1, 0, 0, 0],
-    [1, 0, 1, 0],
-    [1, 1, 1, 0],
-    [1, 1, 1, 1],
+  /* 12 */ [
+    '000000000000', '100000000000', '100000100000', '100010001000',
+    '100100100100', '101001010010', '101010101010', '101011010110',
+    '110110110110', '111011101110', '111110111110', '111111111110',
+    '111111111111',
   ],
-
-
-  //5
-  [
-    [0, 0, 0, 0, 0],
-
-    [1, 0, 0, 0, 0],
-    [1, 0, 1, 0, 0],
-    [1, 0, 1, 0, 1],
-    [1, 1, 1, 1, 0],
-
-    [1, 1, 1, 1, 1]
+  /* 13 */ [
+    '0000000000000', '1000000000000', '1000001000000', '1000100010000',
+    '1001001001000', '1001010010100', '1010101010100', '1010101010101',
+    '1011010110101', '1101101101101', '1110111011101', '1111101111101',
+    '1111111111110', '1111111111111',
   ],
-
-
-  //6
-  [
-    [0, 0, 0, 0, 0, 0],
-
-    [1, 0, 0, 0, 0, 0],
-    [1, 0, 0, 1, 0, 0],
-    [1, 0, 1, 0, 1, 0],
-    [1, 1, 0, 1, 1, 0],
-
-    [1, 1, 1, 1, 1, 0],
-    [1, 1, 1, 1, 1, 1]
+  /* 14 */ [
+    '00000000000000', '10000000000000', '10000001000000', '10000100001000',
+    '10010001001000', '10010010010010', '10101001010100', '10101010101010',
+    '10101011010101', '10110110110110', '11011011101101', '11101111011110',
+    '11111101111110', '11111111111110', '11111111111111',
   ],
-
-
-  //7
-  [
-    [0, 0, 0, 0, 0, 0, 0],
-
-    [1, 0, 0, 0, 0, 0, 0],
-    [1, 0, 0, 1, 0, 0, 0],
-    [1, 0, 1, 0, 1, 0, 0],
-    [1, 0, 1, 0, 1, 0, 1],
-
-    [1, 1, 0, 1, 1, 0, 1],
-    [1, 1, 1, 1, 1, 1, 0],
-    [1, 1, 1, 1, 1, 1, 1]
+  /* 15 */ [
+    '000000000000000', '100000000000000', '100000010000000', '100001000010000',
+    '100010001000100', '100100100100100', '101001010010100', '101010101010100',
+    '101010101010101', '101011010110101', '110110110110110', '110111011101110',
+    '111101111011110', '111111011111101', '111111111111110', '111111111111111',
   ],
-
-
-  //8
-  [
-    [0, 0, 0, 0, 0, 0, 0, 0],
-
-    [1, 0, 0, 0, 0, 0, 0, 0],
-    [1, 0, 0, 0, 1, 0, 0, 0],
-    [1, 0, 0, 1, 0, 0, 1, 0],
-    [1, 0, 1, 0, 1, 0, 1, 0],
-
-    [1, 0, 1, 1, 0, 1, 1, 0],
-    [1, 1, 1, 0, 1, 1, 1, 0],
-    [1, 1, 1, 1, 1, 1, 1, 0],
-    [1, 1, 1, 1, 1, 1, 1, 1]
+  /* 16 */ [
+    '0000000000000000', '1000000000000000', '1000000010000000', '1000010000100000',
+    '1000100010001000', '1001001001001000', '1001001010010010', '1010100101010010',
+    '1010101010101010', '1010101101010110', '1011011010110110', '1101101101101101',
+    '1110111011101110', '1111011110111101', '1111111011111110', '1111111111111110',
+    '1111111111111111',
   ],
+].map((row) => row.map((pattern) => [...pattern].map(Number)));
 
-
-  //9
-  [
-    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-
-    [1, 0, 0, 0, 0, 0, 0, 0, 0],
-    [1, 0, 0, 0, 1, 0, 0, 0, 0],
-    [1, 0, 0, 1, 0, 0, 1, 0, 0],
-    [1, 0, 1, 0, 1, 0, 1, 0, 0],
-
-    [1, 0, 1, 0, 1, 0, 1, 0, 1],
-    [1, 1, 0, 1, 1, 0, 1, 1, 0],
-    [1, 1, 1, 0, 1, 1, 1, 0, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 0],
-
-    [1, 1, 1, 1, 1, 1, 1, 1, 1]
-  ],
-
-
-  //10 
-  [
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [1, 0, 0, 0, 0, 1, 0, 0, 0, 0],
-    [1, 0, 0, 1, 0, 0, 1, 0, 0, 0],
-    [1, 0, 1, 0, 0, 1, 0, 1, 0, 0],
-
-    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0],
-    [1, 0, 1, 0, 1, 1, 0, 1, 0, 1],
-    [1, 1, 0, 1, 1, 0, 1, 1, 0, 1],
-    [1, 1, 1, 1, 0, 1, 1, 1, 1, 0],
-
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-  ],
-
-
-  //11
-  [
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-    [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0],
-    [1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0],
-
-    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0],
-    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-    [1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0],
-    [1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0],
-
-
-    [1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-  ],
-
-
-  //12
-  [
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-    [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
-    [1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0],
-
-    [1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0],
-    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0],
-    [1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0],
-    [1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0],
-
-    [1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0],
-    [1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  ],
-
-
-  //13
-  [
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
-    [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0],
-    [1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0],
-
-    [1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0],
-    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0],
-    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-    [1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1],
-
-    [1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1],
-    [1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1],
-    [1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  ],
-
-
-  //14 
-  [
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
-    [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0],
-    [1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0],
-
-    [1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0],
-    [1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0],
-    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0],
-    [1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1],
-
-    [1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0],
-    [1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1],
-    [1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0],
-    [1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0],
-
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  ],
-
-
-  //15 
-  [
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-    [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0],
-    [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0],
-
-    [1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0],
-    [1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0],
-    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0],
-    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-
-    [1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1],
-    [1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0],
-    [1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0],
-    [1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0],
-
-    [1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  ],
-
-
-  //16 
-  [
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-    [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-    [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
-
-    [1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0],
-    [1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0],
-    [1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0],
-    [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0],
-
-    [1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0],
-    [1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0],
-    [1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1],
-    [1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0],
-
-    [1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1],
-    [1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  ]
-];
-
-let drums; // p5.Part that drives every track's phrase
-let amp; // master level, for the meter
+// The browser starts the context suspended; it resumes on the first click or key press.
+const audio = new AudioContext();
+let synthBus; // gentle limiter that every track's synth feeds
+let master; // master volume
+let meters; // left and right analysers on the master output, with their smoothed levels
 let tempoBpm = DEFAULT_BPM;
 let playing = false;
+
+// Sequencer state. Steps are scheduled a little ahead of time on the audio clock, from a
+// worker timer so playback keeps time in background tabs. `tick` counts steps since the
+// last stop; each track loops over its own pattern, so it plays pattern[tick % length].
+const LOOKAHEAD = 0.1; // seconds of audio scheduled in advance
+let tick = 0;
+let nextStepTime = 0;
+let ticker = null;
+const TICKER_URL = URL.createObjectURL(new Blob(['setInterval(() => postMessage(0), 25)']));
 
 // Returns the Euclidean pattern for the given step length and density, rotated left by `offset`.
 // Density is capped at the step length, and a zero-length track is a single rest.
@@ -327,46 +107,72 @@ function euclidPattern(steps, density, offset) {
   if (steps === 0) {
     return [0];
   }
-  const base = euclidArray[steps][min(density, steps)];
+  const base = EUCLID[steps][Math.min(density, steps)];
   const shift = offset % steps;
   return base.slice(shift).concat(base.slice(0, shift));
 }
 
-function preload() {
-  for (const track of TRACKS) {
-    track.sounds = track.files.map((file) => loadSound(`assets/${file}.mp3`));
-  }
-}
-
 function setup() {
-  noCanvas();
-  amp = new p5.Amplitude(0.8);
-  drums = new p5.Part();
+  synthBus = audio.createDynamicsCompressor();
+  synthBus.threshold.value = -6;
+  synthBus.knee.value = 6;
+  synthBus.ratio.value = 8;
+  synthBus.attack.value = 0.002;
+  synthBus.release.value = 0.12;
+
+  // A hard limiter, then the master volume, then the speakers and the level meters.
+  const limiter = audio.createDynamicsCompressor();
+  limiter.threshold.value = -3;
+  limiter.knee.value = 1;
+  limiter.ratio.value = 20;
+  master = audio.createGain();
+  master.gain.value = DEFAULT_VOLUME;
+  wire(synthBus, limiter, master, audio.destination);
+  const splitter = audio.createChannelSplitter(2);
+  master.connect(splitter);
+  meters = ['meterL', 'meterR'].map((id, channel) => {
+    const analyser = audio.createAnalyser();
+    analyser.fftSize = 2048;
+    splitter.connect(analyser, channel);
+    return { analyser, samples: new Float32Array(analyser.fftSize), level: 0, el: document.getElementById(id) };
+  });
 
   for (const track of TRACKS) {
-    Object.assign(track, track.groove, { sound: track.sounds[0], volume: DEFAULT_VOLUME, muted: false });
+    Object.assign(track, track.groove, { volume: DEFAULT_VOLUME, muted: false });
+    track.voice = SYNTHS[track.synth];
+    track.params = Object.assign({}, track.voice.presets[track.preset]);
+    track.out = audio.createGain();
+    track.out.connect(synthBus);
     track.pattern = euclidPattern(track.steps, track.density, track.offset);
-    drums.addPhrase(new p5.Phrase(track.phrase, (time) => {
-      if (!track.muted) track.sound.play(time);
-    }, track.pattern));
     applyVolume(track);
   }
 
-  // Fires on every tick: keeps the part 16 steps long and drives the playhead.
-  drums.addPhrase('playhead', onTick, new Array(MAX_STEPS).fill(1));
-  drums.setBPM(DEFAULT_BPM);
-  masterVolume(DEFAULT_VOLUME);
-
   buildRack();
   buildTransport();
-  document.getElementById('loading').remove();
+  requestAnimationFrame(drawMeters);
 }
 
-function draw() {
-  for (const [channel, id] of [[0, 'meterL'], [1, 'meterR']]) {
-    const level = Math.min(1, amp.getLevel(channel) * 3.2);
-    document.getElementById(id).style.transform = `scaleY(${level.toFixed(3)})`;
+function playTrack(track, time) {
+  track.voice.play(audio, track.out, time, track.params);
+}
+
+// Plays a track once right away, as when its name is clicked.
+async function preview(track) {
+  await audio.resume();
+  playTrack(track, audio.currentTime + 0.005);
+  flash(track);
+}
+
+// Level meters: RMS of the latest audio, falling back gradually after each peak.
+function drawMeters() {
+  for (const meter of meters) {
+    meter.analyser.getFloatTimeDomainData(meter.samples);
+    let sum = 0;
+    for (const x of meter.samples) sum += x * x;
+    meter.level = Math.max(Math.sqrt(sum / meter.samples.length), meter.level * 0.92);
+    meter.el.style.transform = `scaleY(${Math.min(1, meter.level * 3.2).toFixed(3)})`;
   }
+  requestAnimationFrame(drawMeters);
 }
 
 // ---------- channel rack ----------
@@ -384,6 +190,7 @@ function buildRack() {
     const row = document.createElement('div');
     row.className = 'channel';
     row.style.setProperty('--ch', track.color);
+    const presets = Object.keys(track.voice.presets);
     row.innerHTML = `
       <button class="mute-led on" title="Mute ${track.label}" aria-pressed="true"
         aria-label="${track.label} on"></button>
@@ -393,9 +200,16 @@ function buildRack() {
           <span class="channel-num">${index + 1}</span>
           <span class="channel-label">${track.label}</span>
         </button>
-        <select class="sample-select" aria-label="${track.label} sample">
-          ${track.options.map((option, i) => `<option value="${i}">${option}</option>`).join('')}
-        </select>
+        <div class="preset-line">
+          <select class="preset-select" aria-label="${track.label} preset">
+            ${presets.map((name) => `<option${name === track.preset ? ' selected' : ''}>${name}</option>`).join('')}
+            <option value="" disabled>Custom</option>
+          </select>
+          <button class="synth-toggle" aria-expanded="false" aria-controls="synth-${track.id}"
+            title="Show ${track.label} synth" aria-label="${track.label} synth settings">
+            <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 1v10M6 1v10M10 1v10" /><rect x="0.5" y="6" width="3" height="2" rx="0.5" /><rect x="4.5" y="2.5" width="3" height="2" rx="0.5" /><rect x="8.5" y="7.5" width="3" height="2" rx="0.5" /></svg>
+          </button>
+        </div>
       </div>
       <div class="knob-slot steps-slot" data-label="Steps"></div>
       <div class="knob-slot density-slot" data-label="Density"></div>
@@ -414,14 +228,23 @@ function buildRack() {
       row.classList.toggle('muted', track.muted);
     });
 
-    row.querySelector('.channel-name').addEventListener('click', async () => {
-      await userStartAudio();
-      track.sound.play();
-      flash(track);
+    row.querySelector('.channel-name').addEventListener('click', () => preview(track));
+
+    buildSynthPanel(track, list);
+    const presetSelect = row.querySelector('.preset-select');
+    presetSelect.addEventListener('change', () => {
+      Object.assign(track.params, track.voice.presets[presetSelect.value]);
+      for (const param of track.voice.params) track.paramKnobs[param.key].set(track.params[param.key], true);
+      preview(track);
     });
 
-    row.querySelector('.sample-select').addEventListener('change', (e) => {
-      track.sound = track.sounds[Number(e.target.value)];
+    const toggle = row.querySelector('.synth-toggle');
+    toggle.addEventListener('click', () => {
+      const open = toggle.getAttribute('aria-expanded') !== 'true';
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.title = `${open ? 'Hide' : 'Show'} ${track.label} synth`;
+      row.classList.toggle('open', open);
+      track.panel.hidden = !open;
     });
 
     track.volumeKnob = createKnob(row.querySelector('.vol-slot'), {
@@ -484,14 +307,44 @@ function buildRack() {
   });
 }
 
+// The synth panel that opens under a channel row: one knob per synth parameter.
+function buildSynthPanel(track, list) {
+  const panel = document.createElement('div');
+  panel.className = 'synth-panel';
+  panel.id = `synth-${track.id}`;
+  panel.hidden = true;
+  panel.style.setProperty('--ch', track.color);
+  panel.setAttribute('role', 'group');
+  panel.setAttribute('aria-label', `${track.label} synth`);
+  panel.innerHTML = `<span class="synth-name">${track.synth} synth</span>`;
+  list.appendChild(panel);
+  track.panel = panel;
+
+  const presetSelect = track.row.querySelector('.preset-select');
+  track.paramKnobs = {};
+  for (const param of track.voice.params) {
+    const slot = document.createElement('div');
+    slot.className = 'knob-slot synth-slot';
+    slot.dataset.label = param.label;
+    panel.appendChild(slot);
+    track.paramKnobs[param.key] = createKnob(slot, {
+      label: `${track.label} ${param.label.toLowerCase()}`, min: param.min, max: param.max, step: param.step,
+      value: track.params[param.key], format: (v) => formatParam(param, v),
+      onChange: (v) => {
+        track.params[param.key] = v;
+        presetSelect.value = ''; // shows "Custom"
+      }
+    });
+  }
+}
+
 function applyVolume(track) {
-  for (const sound of track.sounds) sound.setVolume(track.volume);
+  track.out.gain.value = track.volume;
 }
 
 // Swaps in a new pattern for a track and redraws its row.
 function setPattern(track, pattern) {
   track.pattern = pattern;
-  drums.replaceSequence(track.phrase, pattern);
   renderTrack(track);
 }
 
@@ -542,14 +395,15 @@ function buildTransport() {
   createKnob(document.getElementById('masterKnob'), {
     label: 'Master volume', min: 0, max: 1, step: 0.01, value: DEFAULT_VOLUME, size: 30,
     format: (v) => Math.round(v * 100) + '%',
-    onChange: (v) => masterVolume(v)
+    onChange: (v) => {
+      master.gain.value = v;
+    }
   });
 
   // Tempo display: drag vertically, scroll, or use the arrow keys, like a DAW tempo LCD.
   const tempo = document.getElementById('tempo');
   const setTempo = (bpm) => {
     tempoBpm = Math.min(240, Math.max(40, Math.round(bpm)));
-    drums.setBPM(tempoBpm);
     document.getElementById('tempoValue').textContent = tempoBpm.toFixed(3);
     tempo.setAttribute('aria-valuenow', tempoBpm);
   };
@@ -589,20 +443,27 @@ function buildTransport() {
 }
 
 async function togglePlay() {
-  await userStartAudio();
+  await audio.resume();
   if (playing) {
-    drums.pause();
-    setPlaying(false);
-  } else {
-    drums.loop();
+    pause();
+  } else if (!ticker) {
+    nextStepTime = audio.currentTime + 0.05;
+    ticker = new Worker(TICKER_URL);
+    ticker.onmessage = scheduleSteps;
+    scheduleSteps();
     setPlaying(true);
   }
 }
 
-function stop() {
-  drums.stop();
-  drums.metro.metroTicks = 0; // the next play starts from the top
+function pause() {
+  if (ticker) ticker.terminate();
+  ticker = null;
   setPlaying(false);
+}
+
+function stop() {
+  pause();
+  tick = 0; // the next play starts from the top
   clearPlayhead();
   document.getElementById('position').textContent = '1:01';
 }
@@ -617,14 +478,20 @@ function setPlaying(on) {
     : 'Press <kbd>Space</kbd> or the play button to start';
 }
 
-// The playhead phrase is called slightly ahead of the audio, so the visual update is
-// scheduled for the moment the tick is heard. Each phrase loops over its own length,
-// so a track's current step is the tick modulo its step count.
-function onTick(secondsFromNow) {
-  const tick = drums.metro.metroTicks;
-  setTimeout(() => {
-    if (playing) showTick(tick);
-  }, Math.max(0, secondsFromNow * 1000));
+// Schedules every step due within the lookahead window. The playhead is drawn when
+// each step is heard rather than when it is scheduled.
+function scheduleSteps() {
+  while (nextStepTime < audio.currentTime + LOOKAHEAD) {
+    const step = tick++;
+    const time = nextStepTime;
+    for (const track of TRACKS) {
+      if (track.pattern[step % track.pattern.length] && !track.muted) playTrack(track, time);
+    }
+    setTimeout(() => {
+      if (playing) showTick(step);
+    }, Math.max(0, (time - audio.currentTime) * 1000));
+    nextStepTime += 60 / tempoBpm / 4; // sixteenth notes
+  }
 }
 
 function showTick(tick) {
@@ -645,3 +512,5 @@ function showTick(tick) {
 function clearPlayhead() {
   document.querySelectorAll('.pad.now, .step-led.lit').forEach((el) => el.classList.remove('now', 'lit'));
 }
+
+setup();

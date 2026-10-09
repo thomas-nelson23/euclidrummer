@@ -2,7 +2,7 @@
 
 ![EucliDrummer channel rack](docs/screenshots/desktop-playing.png)
 
-EucliDrummer is a browser drum machine built with [p5.js](https://p5js.org/) and p5.sound. It generates rhythms with the [Euclidean algorithm](https://en.wikipedia.org/wiki/Euclidean_rhythm): you pick how many steps a pattern has and how many hits to spread across them, and the hits are distributed as evenly as possible. From there you can rotate the pattern, toggle individual steps by hand, shape each drum's sound, and change the tempo while it plays. Every sound is synthesized live in the browser with the Web Audio API, so there are no samples to load.
+EucliDrummer is a browser drum machine built on the Web Audio API, with no libraries. It generates rhythms with the [Euclidean algorithm](https://en.wikipedia.org/wiki/Euclidean_rhythm): you pick how many steps a pattern has and how many hits to spread across them, and the hits are distributed as evenly as possible. From there you can rotate the pattern, toggle individual steps by hand, shape each drum's sound, and change the tempo while it plays. Every sound is synthesized live in the browser with the Web Audio API, so there are no samples to load.
 
 ## Features
 
@@ -22,7 +22,7 @@ EucliDrummer is a browser drum machine built with [p5.js](https://p5js.org/) and
 
 ## Getting started
 
-There is no build step and no dependencies to install: the p5 libraries are included in the repo.
+There is no build step and nothing to install: the whole app is four small files.
 
 Because the drums are synthesized rather than loaded from files, you can open `index.html` straight from disk. Serving the folder with any static web server works too, for example from the repo folder:
 
@@ -59,25 +59,24 @@ Each drum is a small Web Audio patch in `synths.js`, built fresh for every hit. 
 | HiHat | Six square waves at the TR-808's metallic frequency ratios, mixed with noise and high-passed | **Tune**, **Tone** (high-pass cutoff), **Decay** (turn up to open the hat), **Metal** (squares against noise) | Closed, Open, Crisp |
 | Perc | Pitched sine with a downward bend and optional FM for metallic tones | **Tune**, **Decay**, **Bend** (pitch drop), **Color** (FM amount) | Conga, Tom, Cowbell, Rim |
 
-All six tracks feed a gentle limiter before p5.sound's master output, so stacked hits don't clip.
+All six tracks feed a gentle limiter and then a hard limiter before the master volume, so stacked hits don't clip.
 
 ## How the Euclidean patterns work
 
 A Euclidean rhythm E(k, n) places k hits across n steps as evenly as possible. E(3, 8), for example, gives `x . . x . . x .`, the tresillo rhythm, and E(5, 8) gives the cinquillo. Many traditional rhythms from around the world turn out to be Euclidean patterns, which is why a single "density" control produces musical results so easily.
 
-EucliDrummer stores these patterns as a precomputed lookup table (`euclidArray` in `sketch.js`), indexed by step count and then by number of hits. The Offset knob rotates the selected pattern, and each track's pattern is played by its own `p5.Phrase` and triggers that track's synth on each hit. The phrases share one `p5.Part`, which is the transport that the tempo display, the play button and the Space key control.
+EucliDrummer stores these patterns as a precomputed lookup table (`EUCLID` in `sketch.js`), indexed by step count and then by number of hits. The Offset knob rotates the selected pattern, and a small sequencer schedules every sixteenth note slightly ahead on the audio clock, so timing stays tight. Each track loops over its own pattern length and triggers its synth on each hit; the tempo display, the play button and the Space key control that sequencer.
 
 ## Project structure
 
 | Path | What it is |
 | --- | --- |
-| `index.html` | The page: toolbar, transport and the channel rack shell. Loads the p5 libraries and the scripts. |
+| `index.html` | The page: toolbar, transport and the channel rack shell. Loads the scripts. |
 | `sketch.js` | The app: the track table, the Euclidean pattern table, playback, and building the channel rack and synth panels. |
 | `synths.js` | The drum synthesizers: each drum's knobs, presets and Web Audio patch. |
 | `knob.js` | The rotary knob control used for every knob on the page. |
 | `style.css` | The FL Studio-inspired theme, including the phone layout. |
 | `docs/screenshots/` | Screenshots used in this README. |
-| `p5.js`, `p5.sound.js` | Bundled copies of p5.js 0.9.0 and p5.sound 0.3.11. |
 
 ## Adding presets or changing a drum
 

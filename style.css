@@ -823,18 +823,6 @@ kbd {
   font-size: 13px;
 }
 
-.loading {
-  position: fixed;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  background: rgba(15, 20, 23, 0.85);
-  color: var(--text-bright);
-  font-size: 16px;
-  letter-spacing: 0.5px;
-  z-index: 10;
-}
-
 @media (max-width: 760px) {
   .toolbar {
     flex-wrap: wrap;

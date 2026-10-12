@@ -13,7 +13,7 @@ EucliDrummer is a browser drum machine built on the Web Audio API, with no libra
   - **Density** sets how many hits are spread across those steps (0 to 16, capped at the step count).
   - **Offset** rotates the pattern by 0 to 16 steps.
 - 16 step pads per track that show the pattern and light up as the playhead passes. Click a pad to toggle that step.
-- Orbit, a live geometric view of the sequence: each track is a ring with its hits joined into a polygon, a comet circles each ring at that track's own speed, and hits flare as they sound. It sits beside the rack on wide screens and below it on smaller ones, and **Hide** in its title bar folds it away.
+- Orbit, a live geometric view of the sequence: each track is a ring with its hits joined into an outlined shape with a soft fill and its rests shown as faint dots, and a small ring marks each track's current step, filling in when it plays a hit. It sits beside the rack on wide screens and below it on smaller ones, and **Hide** in its title bar folds it away.
 - A HexDrums-style drum synth panel below the rack, always in view, with one module per track holding the knobs and switches from that voice's HexDrums panel (see [The drum synths](#the-drum-synths)). Each module's LED flashes on every hit, and clicking its header plays the drum.
 - A voice picker under the track name: Kick can use either bass drum, Snare can switch to the Machine, and the Perc tracks choose between the Machine, the Rimshot and Bass Drum 2. Each voice remembers its settings when you switch away and back. Click the track name to hear it.
 - Per-track mute and volume, and a master volume with a level meter.

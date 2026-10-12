@@ -12,18 +12,39 @@ const MAX_STEPS = 16;
 const DEFAULT_BPM = 90;
 const DEFAULT_VOLUME = 0.8;
 
-// One entry per track, in display order. `id` names the track's synth panel, `synth`
-// picks its voice from SYNTHS and `preset` the sound it starts with, `color` tints its rack
-// row, and `groove` is the pattern loaded on start (double-clicking a knob returns to it).
+// One entry per track, in display order. `id` names the track's synth panel, `voices` lists
+// the VOICES its dropdown offers and `voice` is the one it starts on, `sounds` tunes a voice's
+// starting controls for this track, `color` tints its rack row, and `groove` is the pattern
+// loaded on start (double-clicking a knob returns to it).
 const TRACKS = [
-  { id: 'kick', label: 'Kick', synth: 'kick', preset: '808', color: '#ff8a3d', groove: { steps: 16, density: 4, offset: 0 } },
-  { id: 'snare', label: 'Snare', synth: 'snare', preset: 'Classic', color: '#ff5d7a', groove: { steps: 16, density: 2, offset: 4 } },
-  { id: 'clap', label: 'Clap', synth: 'clap', preset: 'Classic', color: '#e879f9', groove: { steps: 16, density: 3, offset: 7 } },
-  { id: 'hh', label: 'HiHat', synth: 'hihat', preset: 'Closed', color: '#ffd23f', groove: { steps: 16, density: 8, offset: 0 } },
-  { id: 'p1', label: 'Perc 1', synth: 'perc', preset: 'Conga', color: '#3ddbb8', groove: { steps: 12, density: 5, offset: 0 } },
-  { id: 'p2', label: 'Perc 2', synth: 'perc', preset: 'Rim', color: '#a78bfa', groove: { steps: 7, density: 3, offset: 2 } },
+  {
+    id: 'kick', label: 'Kick', voices: ['bd1', 'bd2'], voice: 'bd1',
+    color: '#ff8a3d', groove: { steps: 16, density: 4, offset: 0 }
+  },
+  {
+    id: 'snare', label: 'Snare', voices: ['snare', 'machine'], voice: 'snare',
+    sounds: { machine: { pitch: 200, detune: 1.47, m2: 60, decay: 120, noise: 70, noisePitch: 5000, noiseDecay: 150 } },
+    color: '#ff5d7a', groove: { steps: 16, density: 2, offset: 4 }
+  },
+  {
+    id: 'clap', label: 'Clap', voices: ['clap'], voice: 'clap',
+    color: '#e879f9', groove: { steps: 16, density: 3, offset: 7 }
+  },
+  {
+    id: 'hh', label: 'HiHat', voices: ['hihat'], voice: 'hihat',
+    color: '#ffd23f', groove: { steps: 16, density: 8, offset: 0 }
+  },
+  {
+    id: 'p1', label: 'Perc 1', voices: ['machine', 'rimshot', 'bd2'], voice: 'machine',
+    sounds: { machine: { pitch: 330, m1: 90, m2: 15, pitchDecay: 25, decayAmount: 20, decay: 200, click: 25 } },
+    color: '#3ddbb8', groove: { steps: 12, density: 5, offset: 0 }
+  },
+  {
+    id: 'p2', label: 'Perc 2', voices: ['rimshot', 'machine', 'bd2'], voice: 'rimshot',
+    sounds: { machine: { pitch: 560, detune: 1.48, m1: 70, m2: 70, decayAmount: 0, decay: 260, click: 10 } },
+    color: '#a78bfa', groove: { steps: 7, density: 3, offset: 2 }
+  },
 ];
-
 
 // EUCLID[steps][hits] is the pattern with `hits` onsets spread over `steps` steps.
 const EUCLID = [
@@ -140,8 +161,9 @@ function setup() {
 
   for (const track of TRACKS) {
     Object.assign(track, track.groove, { volume: DEFAULT_VOLUME, muted: false });
-    track.voice = SYNTHS[track.synth];
-    track.params = Object.assign({}, track.voice.presets[track.preset]);
+    // Control values per voice, so switching voices and back keeps your settings.
+    track.values = {};
+    for (const id of track.voices) track.values[id] = voiceDefaults(id, track.sounds && track.sounds[id]);
     track.out = audio.createGain();
     track.out.connect(synthBus);
     track.pattern = euclidPattern(track.steps, track.density, track.offset);
@@ -155,7 +177,7 @@ function setup() {
 }
 
 function playTrack(track, time) {
-  track.voice.play(audio, track.out, time, track.params);
+  VOICES[track.voice].play(audio, track.out, time, track.values[track.voice]);
 }
 
 // Plays a track once right away, as when its name is clicked.
@@ -192,7 +214,6 @@ function buildRack() {
     const row = document.createElement('div');
     row.className = 'channel';
     row.style.setProperty('--ch', track.color);
-    const presets = Object.keys(track.voice.presets);
     row.innerHTML = `
       <button class="mute-led on" title="Mute ${track.label}" aria-pressed="true"
         aria-label="${track.label} on"></button>
@@ -202,10 +223,10 @@ function buildRack() {
           <span class="channel-num">${index + 1}</span>
           <span class="channel-label">${track.label}</span>
         </button>
-        <div class="preset-line">
-          <select class="preset-select" aria-label="${track.label} preset">
-            ${presets.map((name) => `<option${name === track.preset ? ' selected' : ''}>${name}</option>`).join('')}
-            <option value="" disabled>Custom</option>
+        <div class="voice-line">
+          <select class="voice-select" aria-label="${track.label} voice" title="Voice"
+            ${track.voices.length === 1 ? 'disabled' : ''}>
+            ${track.voices.map((id) => `<option value="${id}"${id === track.voice ? ' selected' : ''}>${VOICES[id].name}</option>`).join('')}
           </select>
           <button class="synth-toggle" aria-expanded="false" aria-controls="synth-${track.id}"
             title="Show ${track.label} synth" aria-label="${track.label} synth settings">
@@ -233,11 +254,19 @@ function buildRack() {
 
     row.querySelector('.channel-name').addEventListener('click', () => preview(track));
 
-    buildSynthPanel(track, list);
-    const presetSelect = row.querySelector('.preset-select');
-    presetSelect.addEventListener('change', () => {
-      Object.assign(track.params, track.voice.presets[presetSelect.value]);
-      for (const param of track.voice.params) track.paramKnobs[param.key].set(track.params[param.key], true);
+    const panel = document.createElement('div');
+    panel.className = 'synth-panel';
+    panel.id = `synth-${track.id}`;
+    panel.hidden = true;
+    panel.style.setProperty('--ch', track.color);
+    panel.setAttribute('role', 'group');
+    list.appendChild(panel);
+    track.panel = panel;
+    buildSynthPanel(track);
+
+    row.querySelector('.voice-select').addEventListener('change', (e) => {
+      track.voice = e.target.value;
+      buildSynthPanel(track);
       preview(track);
     });
 
@@ -310,34 +339,31 @@ function buildRack() {
   });
 }
 
-// The synth panel that opens under a channel row: one knob per synth parameter.
-function buildSynthPanel(track, list) {
-  const panel = document.createElement('div');
-  panel.className = 'synth-panel';
-  panel.id = `synth-${track.id}`;
-  panel.hidden = true;
-  panel.style.setProperty('--ch', track.color);
-  panel.setAttribute('role', 'group');
-  panel.setAttribute('aria-label', `${track.label} synth`);
-  panel.innerHTML = `<span class="synth-name">${track.synth} synth</span>`;
-  list.appendChild(panel);
-  track.panel = panel;
+// Fills the synth panel under a channel row with the current voice's controls: a knob for
+// each continuous control and a switch for each multi-position one.
+function buildSynthPanel(track) {
+  const voice = VOICES[track.voice];
+  const values = track.values[track.voice];
+  const defaults = voiceDefaults(track.voice, track.sounds && track.sounds[track.voice]);
+  const panel = track.panel;
+  panel.setAttribute('aria-label', `${track.label} ${voice.title}`);
+  panel.innerHTML = `<span class="synth-name">${voice.title}</span>`;
 
-  const presetSelect = track.row.querySelector('.preset-select');
-  track.paramKnobs = {};
-  for (const param of track.voice.params) {
+  for (const control of voice.controls) {
     const slot = document.createElement('div');
-    slot.className = 'knob-slot synth-slot';
-    slot.dataset.label = param.label;
+    slot.className = 'knob-slot synth-slot' + (control.options ? ' switch-slot' : '');
+    slot.dataset.label = control.label;
     panel.appendChild(slot);
-    track.paramKnobs[param.key] = createKnob(slot, {
-      label: `${track.label} ${param.label.toLowerCase()}`, min: param.min, max: param.max, step: param.step,
-      value: track.params[param.key], format: (v) => formatParam(param, v),
-      onChange: (v) => {
-        track.params[param.key] = v;
-        presetSelect.value = ''; // shows "Custom"
-      }
-    });
+    const label = `${track.label} ${control.label}`;
+    const onChange = (v) => { values[control.key] = v; };
+    if (control.options) {
+      createSwitch(slot, { label, options: control.options, value: values[control.key], onChange });
+    } else {
+      createKnob(slot, {
+        label, min: control.min, max: control.max, step: control.step, value: values[control.key],
+        default: defaults[control.key], format: (v) => formatControl(control, v), onChange
+      });
+    }
   }
 }
 

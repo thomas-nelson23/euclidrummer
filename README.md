@@ -14,7 +14,7 @@ EucliDrummer is a browser drum machine built on the Web Audio API, with no libra
   - **Offset** rotates the pattern by 0 to 16 steps.
 - 16 step pads per track that show the pattern and light up as the playhead passes. Click a pad to toggle that step.
 - Orbit, a live geometric view of the sequence: each track is a ring with its hits joined into a polygon, a comet circles each ring at that track's own speed, and hits flare as they sound. It sits beside the rack on wide screens and below it on smaller ones, and **Hide** in its title bar folds it away.
-- A synth panel per track, opened with the slider button under the track name, with the knobs and switches from that voice's HexDrums panel (see [The drum synths](#the-drum-synths)).
+- A HexDrums-style drum synth panel below the rack, always in view, with one module per track holding the knobs and switches from that voice's HexDrums panel (see [The drum synths](#the-drum-synths)). Each module's LED flashes on every hit, and clicking its header plays the drum.
 - A voice picker under the track name: Kick can use either bass drum, Snare can switch to the Machine, and the Perc tracks choose between the Machine, the Rimshot and Bass Drum 2. Each voice remembers its settings when you switch away and back. Click the track name to hear it.
 - Per-track mute and volume, and a master volume with a level meter.
 - Tempo from 40 to 240 BPM (90 by default), adjustable while the loop runs.
@@ -41,7 +41,7 @@ Then open <http://localhost:8000> in your browser. In VS Code, the Live Server e
 2. Turn a track's **Density** knob to add or remove hits. Each track starts with a groove loaded, and **Clear** in the rack's title bar empties every pattern.
 3. Turn **Steps** to make a track loop over fewer steps, and **Offset** to shift where its hits land. Tracks with different step counts drift against each other, which is where the polyrhythms come from.
 4. Click pads to add or remove individual hits on top of the generated pattern. Hits you add by hand light up blue instead of white, and generated hits you remove get a blue outline, so you can always tell your edits apart from the Euclidean pattern.
-5. Pick a voice from a track's dropdown, then click the slider button beside it to open the track's synth panel and shape the sound with its knobs and switches. Use the green light to mute a track, and the small knob beside it for its volume.
+5. Pick a voice from a track's dropdown, then shape the sound with that track's knobs and switches in the drum synth panel below the rack. Use the green light to mute a track, and the small knob beside it for its volume.
 6. Set the speed by dragging the **BPM** display up or down, scrolling over it, or focusing it and using the arrow keys. Double-click it to go back to 90.
 
 Knobs work the same way: drag up or down (hold Shift for finer steps), scroll, or use the arrow keys, and double-click to return to the starting value. Switches are clicked, or moved with the arrow keys.
@@ -75,9 +75,9 @@ EucliDrummer stores these patterns as a precomputed lookup table (`EUCLID` in `s
 | Path | What it is |
 | --- | --- |
 | `index.html` | The page: toolbar, transport and the channel rack shell. Loads the scripts. |
-| `sketch.js` | The app: the track table, the Euclidean pattern table, playback, and building the channel rack and synth panels. |
+| `sketch.js` | The app: the track table, the Euclidean pattern table, playback, and building the channel rack and the drum synth panel. |
 | `synths.js` | The drum voices: each one's panel controls and Web Audio patch. |
-| `knob.js` | The rotary knob used for every knob on the page, and the multi-position switch used in the synth panels. |
+| `knob.js` | The rotary knob used for every knob on the page, and the multi-position switch used in the drum synth panel. |
 | `visualizer.js` | Orbit, the canvas view that draws each track as a ring and animates it with playback. |
 | `style.css` | The FL Studio-inspired theme, including the phone layout. |
 | `docs/screenshots/` | Screenshots used in this README. |

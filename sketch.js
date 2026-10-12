@@ -228,10 +228,6 @@ function buildRack() {
             ${track.voices.length === 1 ? 'disabled' : ''}>
             ${track.voices.map((id) => `<option value="${id}"${id === track.voice ? ' selected' : ''}>${VOICES[id].name}</option>`).join('')}
           </select>
-          <button class="synth-toggle" aria-expanded="false" aria-controls="synth-${track.id}"
-            title="Show ${track.label} synth" aria-label="${track.label} synth settings">
-            <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 1v10M6 1v10M10 1v10" /><rect x="0.5" y="6" width="3" height="2" rx="0.5" /><rect x="4.5" y="2.5" width="3" height="2" rx="0.5" /><rect x="8.5" y="7.5" width="3" height="2" rx="0.5" /></svg>
-          </button>
         </div>
       </div>
       <div class="knob-slot steps-slot" data-label="Steps"></div>
@@ -249,34 +245,18 @@ function buildRack() {
       mute.setAttribute('aria-pressed', String(!track.muted));
       mute.setAttribute('aria-label', `${track.label} ${track.muted ? 'muted' : 'on'}`);
       row.classList.toggle('muted', track.muted);
+      track.module.classList.toggle('muted', track.muted);
       if (orbit) orbit.refresh();
     });
 
     row.querySelector('.channel-name').addEventListener('click', () => preview(track));
 
-    const panel = document.createElement('div');
-    panel.className = 'synth-panel';
-    panel.id = `synth-${track.id}`;
-    panel.hidden = true;
-    panel.style.setProperty('--ch', track.color);
-    panel.setAttribute('role', 'group');
-    list.appendChild(panel);
-    track.panel = panel;
-    buildSynthPanel(track);
+    buildSynthModule(track, index);
 
     row.querySelector('.voice-select').addEventListener('change', (e) => {
       track.voice = e.target.value;
       buildSynthPanel(track);
       preview(track);
-    });
-
-    const toggle = row.querySelector('.synth-toggle');
-    toggle.addEventListener('click', () => {
-      const open = toggle.getAttribute('aria-expanded') !== 'true';
-      toggle.setAttribute('aria-expanded', String(open));
-      toggle.title = `${open ? 'Hide' : 'Show'} ${track.label} synth`;
-      row.classList.toggle('open', open);
-      track.panel.hidden = !open;
     });
 
     track.volumeKnob = createKnob(row.querySelector('.vol-slot'), {
@@ -339,15 +319,40 @@ function buildRack() {
   });
 }
 
-// Fills the synth panel under a channel row with the current voice's controls: a knob for
-// each continuous control and a switch for each multi-position one.
+// Adds a track's module to the drum synth panel below the rack, like one voice section of a
+// hardware drum machine: a header naming the track and its voice, then the voice's controls.
+function buildSynthModule(track, index) {
+  const module = document.createElement('div');
+  module.className = 'hex-module';
+  module.style.setProperty('--ch', track.color);
+  module.setAttribute('role', 'group');
+  module.innerHTML = `
+    <button class="hex-head" title="Preview ${track.label}">
+      <span class="channel-num">${index + 1}</span>
+      <span class="hex-track">${track.label}</span>
+      <span class="hex-voice"></span>
+      <span class="hex-led" aria-hidden="true"></span>
+    </button>
+    <div class="hex-controls"></div>`;
+  module.querySelector('.hex-head').addEventListener('click', () => preview(track));
+  document.getElementById('synthModules').appendChild(module);
+  track.module = module;
+  track.panel = module.querySelector('.hex-controls');
+  buildSynthPanel(track);
+}
+
+// Fills a track's synth module with the current voice's controls: a knob for each
+// continuous control and a switch for each multi-position one.
 function buildSynthPanel(track) {
   const voice = VOICES[track.voice];
   const values = track.values[track.voice];
   const defaults = voiceDefaults(track.voice, track.sounds && track.sounds[track.voice]);
+  track.module.setAttribute('aria-label', `${track.label}: ${voice.title}`);
+  // Skip the voice name where it only repeats the track's, as on the Clap and HiHat tracks.
+  const sameName = voice.title.toLowerCase() === track.label.toLowerCase();
+  track.module.querySelector('.hex-voice').textContent = sameName ? '' : voice.title;
   const panel = track.panel;
-  panel.setAttribute('aria-label', `${track.label} ${voice.title}`);
-  panel.innerHTML = `<span class="synth-name">${voice.title}</span>`;
+  panel.innerHTML = '';
 
   for (const control of voice.controls) {
     const slot = document.createElement('div');
@@ -430,9 +435,11 @@ function buildVisualizer() {
 }
 
 function flash(track) {
-  track.row.classList.remove('hit');
-  void track.row.offsetWidth; // restart the CSS animation
-  track.row.classList.add('hit');
+  for (const el of [track.row, track.module]) {
+    el.classList.remove('hit');
+    void el.offsetWidth; // restart the CSS animation
+    el.classList.add('hit');
+  }
 }
 
 // ---------- transport ----------

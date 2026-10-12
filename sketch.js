@@ -387,10 +387,7 @@ function renderTrack(track) {
 // ---------- visualizer ----------
 
 function buildVisualizer() {
-  orbit = createVisualizer(document.getElementById('orbit'), TRACKS, {
-    stepDuration: () => 60 / tempoBpm / 4,
-    level: () => Math.max(meters[0].level, meters[1].level),
-  });
+  orbit = createVisualizer(document.getElementById('orbit'), TRACKS);
 
   const panel = document.getElementById('orbitPanel');
   const toggle = document.getElementById('orbitToggle');
@@ -482,7 +479,6 @@ function pause() {
   if (ticker) ticker.terminate();
   ticker = null;
   setPlaying(false);
-  orbit.pause();
 }
 
 function stop() {

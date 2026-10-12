@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="style.css">
   <script src="knob.js" defer></script>
   <script src="synths.js" defer></script>
+  <script src="visualizer.js" defer></script>
   <script src="sketch.js" defer></script>
 </head>
 
@@ -51,30 +52,45 @@
   </header>
 
   <main class="workspace">
-    <section class="window rack" aria-label="Channel rack">
-      <div class="window-title">
-        <span class="window-icon" aria-hidden="true"></span>
-        <span>Channel rack</span>
-        <span class="window-sub">Euclidean</span>
-        <button class="ghost-btn" id="clearBtn" title="Clear every pattern">Clear</button>
-      </div>
-
-      <div class="rack-scroll">
-        <div class="rack-head" aria-hidden="true">
-          <span class="h-mute"></span>
-          <span class="h-vol">Vol</span>
-          <span class="h-name">Channel</span>
-          <span class="h-knob">Steps</span>
-          <span class="h-knob">Density</span>
-          <span class="h-knob">Offset</span>
-          <span class="h-steps">
-            <span class="step-leds" id="stepLeds"></span>
-          </span>
-          <span class="h-ratio">Hits</span>
+    <div class="stage">
+      <section class="window rack" aria-label="Channel rack">
+        <div class="window-title">
+          <span class="window-icon" aria-hidden="true"></span>
+          <span>Channel rack</span>
+          <span class="window-sub">Euclidean</span>
+          <button class="ghost-btn" id="clearBtn" title="Clear every pattern">Clear</button>
         </div>
-        <div id="channels"></div>
-      </div>
-    </section>
+
+        <div class="rack-scroll">
+          <div class="rack-head" aria-hidden="true">
+            <span class="h-mute"></span>
+            <span class="h-vol">Vol</span>
+            <span class="h-name">Channel</span>
+            <span class="h-knob">Steps</span>
+            <span class="h-knob">Density</span>
+            <span class="h-knob">Offset</span>
+            <span class="h-steps">
+              <span class="step-leds" id="stepLeds"></span>
+            </span>
+            <span class="h-ratio">Hits</span>
+          </div>
+          <div id="channels"></div>
+        </div>
+      </section>
+
+      <section class="window orbit-panel" id="orbitPanel" aria-label="Pattern visualizer">
+        <div class="window-title">
+          <span class="orbit-icon" aria-hidden="true"></span>
+          <span>Orbit</span>
+          <button class="ghost-btn" id="orbitToggle" aria-expanded="true" aria-controls="orbitBody"
+            title="Show or hide the visualizer">Hide</button>
+        </div>
+        <div class="orbit-body" id="orbitBody">
+          <canvas id="orbit" role="img"
+            aria-label="Each channel drawn as a ring, with its hits joined into a shape"></canvas>
+        </div>
+      </section>
+    </div>
 
     <p class="footnote">Drag knobs up and down (Shift for fine control, double-click to reset). Open a channel's
       synth with the slider button under its name. Click pads to add or remove hits by hand:

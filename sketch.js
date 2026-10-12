@@ -6,7 +6,7 @@
 //
 // Every track is played by a drum synthesizer from synths.js. Sequencing, mixing and
 // metering use the Web Audio API directly; the interface is plain HTML (index.html,
-// style.css) with rotary knobs from knob.js.
+// style.css) with rotary knobs from knob.js and a canvas visualizer from visualizer.js.
 
 const MAX_STEPS = 16;
 const DEFAULT_BPM = 90;
@@ -91,6 +91,7 @@ let master; // master volume
 let meters; // left and right analysers on the master output, with their smoothed levels
 let tempoBpm = DEFAULT_BPM;
 let playing = false;
+let orbit; // the geometric pattern visualizer
 
 // Sequencer state. Steps are scheduled a little ahead of time on the audio clock, from a
 // worker timer so playback keeps time in background tabs. `tick` counts steps since the
@@ -149,6 +150,7 @@ function setup() {
 
   buildRack();
   buildTransport();
+  buildVisualizer();
   requestAnimationFrame(drawMeters);
 }
 
@@ -226,6 +228,7 @@ function buildRack() {
       mute.setAttribute('aria-pressed', String(!track.muted));
       mute.setAttribute('aria-label', `${track.label} ${track.muted ? 'muted' : 'on'}`);
       row.classList.toggle('muted', track.muted);
+      if (orbit) orbit.refresh();
     });
 
     row.querySelector('.channel-name').addEventListener('click', () => preview(track));
@@ -378,6 +381,26 @@ function renderTrack(track) {
   const hits = track.steps ? track.pattern.reduce((a, b) => a + b, 0) : 0;
   track.row.querySelector('.ratio b').textContent = hits;
   track.row.querySelector('.ratio span').textContent = '/' + track.steps;
+  if (orbit) orbit.refresh();
+}
+
+// ---------- visualizer ----------
+
+function buildVisualizer() {
+  orbit = createVisualizer(document.getElementById('orbit'), TRACKS, {
+    stepDuration: () => 60 / tempoBpm / 4,
+    level: () => Math.max(meters[0].level, meters[1].level),
+  });
+
+  const panel = document.getElementById('orbitPanel');
+  const toggle = document.getElementById('orbitToggle');
+  toggle.addEventListener('click', () => {
+    const open = toggle.getAttribute('aria-expanded') !== 'true';
+    toggle.setAttribute('aria-expanded', String(open));
+    toggle.textContent = open ? 'Hide' : 'Show';
+    panel.classList.toggle('collapsed', !open);
+    orbit.refresh();
+  });
 }
 
 function flash(track) {
@@ -459,12 +482,14 @@ function pause() {
   if (ticker) ticker.terminate();
   ticker = null;
   setPlaying(false);
+  orbit.pause();
 }
 
 function stop() {
   pause();
   tick = 0; // the next play starts from the top
   clearPlayhead();
+  orbit.stop();
   document.getElementById('position').textContent = '1:01';
 }
 
@@ -496,6 +521,7 @@ function scheduleSteps() {
 
 function showTick(tick) {
   clearPlayhead();
+  orbit.step(tick);
   const step = tick % MAX_STEPS;
   document.querySelectorAll('.step-led')[step].classList.add('lit');
   document.getElementById('position').textContent =

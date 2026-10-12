@@ -13,6 +13,7 @@ EucliDrummer is a browser drum machine built on the Web Audio API, with no libra
   - **Density** sets how many hits are spread across those steps (0 to 16, capped at the step count).
   - **Offset** rotates the pattern by 0 to 16 steps.
 - 16 step pads per track that show the pattern and light up as the playhead passes. Click a pad to toggle that step.
+- Orbit, a live geometric view of the sequence: each track is a ring with its hits joined into a polygon, a comet circles each ring at that track's own speed, and hits flare as they sound. It sits beside the rack on wide screens and below it on smaller ones, and **Hide** in its title bar folds it away.
 - A synth panel per track, opened with the slider button under the track name, with four knobs for that drum (see [The drum synths](#the-drum-synths)).
 - Presets per drum, chosen from the dropdown under the track name. Turning a synth knob switches the dropdown to Custom. Click the track name to hear the drum.
 - Per-track mute and volume, and a master volume with a level meter.
@@ -22,7 +23,7 @@ EucliDrummer is a browser drum machine built on the Web Audio API, with no libra
 
 ## Getting started
 
-There is no build step and nothing to install: the whole app is four small files.
+There is no build step and nothing to install: the whole app is a handful of small files.
 
 Because the drums are synthesized rather than loaded from files, you can open `index.html` straight from disk. Serving the folder with any static web server works too, for example from the repo folder:
 
@@ -75,6 +76,7 @@ EucliDrummer stores these patterns as a precomputed lookup table (`EUCLID` in `s
 | `sketch.js` | The app: the track table, the Euclidean pattern table, playback, and building the channel rack and synth panels. |
 | `synths.js` | The drum synthesizers: each drum's knobs, presets and Web Audio patch. |
 | `knob.js` | The rotary knob control used for every knob on the page. |
+| `visualizer.js` | Orbit, the canvas view that draws each track as a ring and animates it with playback. |
 | `style.css` | The FL Studio-inspired theme, including the phone layout. |
 | `docs/screenshots/` | Screenshots used in this README. |
 

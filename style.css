@@ -1,31 +1,31 @@
-/* EucliDrummer: a dark, DAW-style theme inspired by FL Studio. */
+/* EucliDrummer, in the Home Dashboard's Deep Ocean look: a flat deep-blue field with one
+   slowly turning wireframe cube, frosted glass windows with hairline edges, Michroma for the
+   wordmark, Sora for text and JetBrains Mono for numbers. Cyan marks what is live (the
+   playhead, knob arcs, the selected switch position); red is kept for small signals (the
+   wordmark accent and the window icons). Each channel keeps its own colour for its pads,
+   rings and module. */
 
 :root {
-  --bg: #1b2226;
-  --bg-grid: rgba(255, 255, 255, 0.025);
-  --panel: #3a434a;
-  --panel-2: #313a40;
-  --panel-3: #262e33;
-  --edge: #1a2024;
-  --edge-light: rgba(255, 255, 255, 0.07);
-  --text: #c5cfd5;
-  --text-dim: #7f8d95;
-  --text-bright: #eef3f5;
-  --accent: #ff9f2e;
-  --accent-soft: rgba(255, 159, 46, 0.18);
-  --led: #9cf04f;
-  --led-glow: rgba(156, 240, 79, 0.55);
-  --lcd-bg: #0f1518;
-  --lcd-text: #ffb45c;
-  --pad: #5b656c;
-  --pad-alt: #6b5960;
-  --pad-on: #e4e9ec;
-  --pad-on-alt: #f1dfe3;
-  --manual: #4cc3ff;
-  --manual-glow: rgba(76, 195, 255, 0.55);
-  --radius: 4px;
-  --font: 'Barlow Semi Condensed', 'Arial Narrow', 'Segoe UI', system-ui, sans-serif;
-  --mono: 'Share Tech Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  --bg: #021d2e;
+  --ink-rgb: 4, 12, 18;
+  --cyan: #2ad4ff;
+  --cyan-rgb: 42, 212, 255;
+  --red: #ff2a4f;
+  --red-rgb: 255, 42, 79;
+  --cyan-soft: rgba(var(--cyan-rgb), 0.08);
+  --text: #d9eef2;
+  --text-soft: #9cc7cf;
+  --text-dim: #5f727a;
+  --line: rgba(var(--cyan-rgb), 0.1);
+  --line-strong: rgba(var(--cyan-rgb), 0.28);
+  --hair: rgba(255, 255, 255, 0.055);
+  --glass-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0) 40%);
+  --glass-edge: rgba(200, 245, 255, 0.1);
+  --glass-blur: blur(22px) saturate(160%);
+  --radius: 8px;
+  --sans: 'Sora', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --display: 'Michroma', var(--sans);
 }
 
 *,
@@ -41,14 +41,10 @@ body {
 }
 
 body {
-  background-color: var(--bg);
-  background-image:
-    linear-gradient(var(--bg-grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px);
-  background-size: 24px 24px;
+  background: var(--bg);
   color: var(--text);
-  font-family: var(--font);
-  font-size: 14px;
+  font: 400 14px/1.45 var(--sans);
+  font-feature-settings: 'tnum' 1;
   -webkit-font-smoothing: antialiased;
   user-select: none;
 }
@@ -63,120 +59,168 @@ button {
   cursor: pointer;
 }
 
+::selection {
+  background: rgba(var(--cyan-rgb), 0.25);
+}
+
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 1px solid var(--cyan);
   outline-offset: 2px;
 }
 
 kbd {
   display: inline-block;
-  padding: 0 5px;
-  border: 1px solid #56626a;
-  border-bottom-width: 2px;
-  border-radius: 3px;
-  background: var(--panel-2);
+  padding: 0 6px;
+  border: 1px solid var(--line-strong);
+  border-radius: 5px;
   font-family: var(--mono);
-  font-size: 11px;
-  line-height: 15px;
-  color: var(--text-bright);
+  font-size: 10px;
+  line-height: 16px;
+  letter-spacing: 0.04em;
+  color: var(--text-soft);
 }
 
-/* ---------- top toolbar ---------- */
+/* ---------- backdrop ---------- */
 
-.toolbar {
+/* Under everything, so the cube only ever shows through the glass. */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Down in the corner beside the drum synth panel on desktops, where nothing covers it. */
+.deco-cube {
+  position: absolute;
+  bottom: 56px;
+  right: 1.5vw;
+  width: 170px;
+  height: 170px;
+  overflow: visible;
+}
+
+.cube {
+  fill: none;
+  stroke: rgba(var(--cyan-rgb), 0.3);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.cube-back {
+  opacity: 0.22;
+}
+
+/* ---------- top bar ---------- */
+
+.topbar {
   position: sticky;
   top: 0;
   z-index: 5;
   display: flex;
   align-items: center;
-  gap: 18px;
-  padding: 8px 16px;
-  background: linear-gradient(#444e56, #353e44);
-  border-bottom: 1px solid var(--edge);
-  box-shadow: inset 0 1px 0 var(--edge-light), 0 2px 10px rgba(0, 0, 0, 0.35);
+  gap: 26px;
+  height: 64px;
+  padding: 0 24px;
+  background: rgba(var(--ink-rgb), 0.55);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+}
+
+/* A hairline that fades out at both ends, as under the dashboard's top bar. */
+.topbar::after {
+  content: '';
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+  pointer-events: none;
 }
 
 .brand {
-  display: flex;
-  align-items: center;
-  gap: 9px;
   flex: none;
 }
 
-.brand-mark {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 50% 50%, var(--panel-3) 0 4px, transparent 4.5px),
-    conic-gradient(var(--accent) 0 45deg, #ffcf7a 45deg 90deg, var(--accent) 90deg 135deg, #ffcf7a 135deg 180deg,
-      var(--accent) 180deg 225deg, #ffcf7a 225deg 270deg, var(--accent) 270deg 315deg, #ffcf7a 315deg);
-  box-shadow: 0 0 0 2px var(--panel-3), 0 0 12px rgba(255, 159, 46, 0.35);
-}
-
 .brand-name {
-  font-size: 19px;
-  font-weight: 500;
-  letter-spacing: 0.2px;
-  color: var(--text-bright);
+  font-family: var(--display);
+  font-size: 16px;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: #fff;
 }
 
-.brand-name b {
-  font-weight: 700;
-  color: var(--accent);
+.brand-accent {
+  color: var(--red);
+  text-shadow: 0 0 12px rgba(var(--red-rgb), 0.6);
 }
 
-.hint-bar {
+.bar-status {
   flex: 1;
   min-width: 0;
-  padding: 5px 10px;
-  border-radius: var(--radius);
-  background: var(--panel-3);
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.45);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
   color: var(--text-dim);
-  font-size: 13px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+.bar-status kbd {
+  margin: 0 2px;
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+
 .transport {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   flex: none;
 }
 
-.t-btn {
+/* Round buttons: play is the main action, a solid white disc; stop is a hairline ring. */
+.btn-round {
+  appearance: none;
   display: grid;
   place-items: center;
   width: 38px;
-  height: 32px;
+  height: 38px;
   padding: 0;
-  border: 1px solid var(--edge);
-  border-radius: var(--radius);
-  background: linear-gradient(#56616a, #424c53);
-  box-shadow: inset 0 1px 0 var(--edge-light), 0 1px 2px rgba(0, 0, 0, 0.4);
-  transition: background 0.12s, box-shadow 0.12s;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--text-soft);
+  transition: color 120ms, background 120ms, border-color 120ms, box-shadow 120ms;
 }
 
-.t-btn:hover {
-  background: linear-gradient(#606c75, #4a555c);
+.btn-round:hover {
+  color: #fff;
+  border-color: var(--line-strong);
 }
 
-.t-btn:active {
-  background: #3a434a;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
-}
-
-.t-btn svg {
+.btn-round svg {
   width: 15px;
   height: 15px;
-  fill: #d6dde1;
+  fill: currentColor;
 }
 
-.t-play svg {
-  fill: var(--led);
+.t-play {
+  color: #0b0f1c;
+  background: #fff;
+  border-color: #fff;
+  box-shadow: 0 8px 26px -10px rgba(255, 255, 255, 0.5);
+}
+
+.t-play:hover {
+  color: #0b0f1c;
+  background: var(--cyan);
+  border-color: var(--cyan);
 }
 
 .t-play .i-pause,
@@ -188,65 +232,78 @@ kbd {
   display: inline;
 }
 
+/* While playing, the disc turns cyan. */
 .t-play.active {
-  background: linear-gradient(#4c6a3c, #3a5130);
-  box-shadow: inset 0 1px 0 var(--edge-light), 0 0 12px var(--led-glow);
+  background: var(--cyan);
+  border-color: var(--cyan);
+  box-shadow: 0 0 22px -4px rgba(var(--cyan-rgb), 0.7);
 }
 
-.t-stop svg {
-  fill: #e0a59a;
+.t-stop:hover {
+  color: #fff;
+  background: rgba(var(--red-rgb), 0.75);
+  border-color: transparent;
 }
 
-.lcd {
+/* Number readouts: a light monospace figure with a letter-spaced unit after it. */
+.readout {
   display: flex;
   align-items: baseline;
-  gap: 6px;
-  height: 32px;
-  padding: 0 10px;
-  border: 1px solid #0a0e10;
-  border-radius: var(--radius);
-  background: linear-gradient(#141b1f, var(--lcd-bg));
-  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.8), 0 1px 0 var(--edge-light);
-  line-height: 32px;
+  gap: 7px;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  line-height: 38px;
 }
 
-.lcd-value {
+.readout-value {
   font-family: var(--mono);
-  font-size: 21px;
-  color: var(--lcd-text);
-  text-shadow: 0 0 8px rgba(255, 159, 46, 0.45);
-  letter-spacing: 0.5px;
+  font-size: 20px;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  color: #fff;
 }
 
-.lcd-label {
-  font-size: 10px;
+.readout-label {
+  font-size: 9.5px;
   font-weight: 600;
-  letter-spacing: 1px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
   color: var(--text-dim);
 }
 
+/* The tempo can be dragged, so it gets a hairline frame that lights on hover. */
 .tempo {
-  min-width: 118px;
+  min-width: 132px;
+  border-color: var(--line);
+  background: rgba(0, 0, 0, 0.2);
   cursor: ns-resize;
+  transition: border-color 120ms;
 }
 
-.tempo:hover .lcd-value {
-  color: #ffc98a;
+.tempo:hover,
+.tempo:focus-visible {
+  border-color: var(--line-strong);
+}
+
+.tempo:hover .readout-value {
+  color: var(--cyan);
 }
 
 .position {
-  min-width: 92px;
+  min-width: 96px;
+  padding: 0 6px;
 }
 
-.position .lcd-value {
-  color: #b9c6cd;
-  text-shadow: none;
+.position .readout-value {
+  color: var(--text-soft);
 }
 
 .master {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   padding-left: 4px;
 }
 
@@ -254,94 +311,142 @@ kbd {
   display: none;
 }
 
+/* Level meter: two thin bars, cyan rising to red at the top. */
 .meter {
   display: flex;
-  gap: 2px;
-  width: 14px;
-  height: 32px;
-  padding: 2px;
-  border-radius: 2px;
-  background: var(--lcd-bg);
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.8);
+  align-items: flex-end;
+  gap: 3px;
+  height: 30px;
 }
 
 .meter span {
-  flex: 1;
-  background: linear-gradient(to top, #6fd13a 0 60%, #e8d44a 60% 82%, #ff5a3c 82%);
+  width: 3px;
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(to top, rgba(var(--cyan-rgb), 0.55), var(--cyan) 70%, var(--red) 92%);
   transform: scaleY(0);
   transform-origin: bottom;
   transition: transform 0.08s linear;
 }
 
-/* ---------- workspace + window chrome ---------- */
+/* ---------- workspace and windows ---------- */
 
 .workspace {
   max-width: 1120px;
   margin: 0 auto;
-  padding: 32px 16px 40px;
+  padding: 30px 16px 40px;
 }
 
-.window {
+/* Frosted glass windows with a hairline edge, after the dashboard's .win. */
+.win {
+  position: relative;
   width: max-content;
   max-width: 100%;
   margin: 0 auto;
-  border: 1px solid var(--edge);
-  border-radius: 6px;
-  background: var(--panel);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 var(--edge-light);
+  border: 1px solid var(--glass-edge);
+  border-radius: var(--radius);
+  background:
+    var(--glass-sheen),
+    linear-gradient(180deg, rgba(var(--ink-rgb), 0.78), rgba(var(--ink-rgb), 0.94) 60%);
+  box-shadow: 0 34px 80px -28px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(0, 0, 0, 0.45);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   overflow: hidden;
 }
 
-.window-title {
+/* The front window: a brighter frame and a thin cyan-to-red line along its top. */
+.win.front {
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 34px 90px -26px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(0, 0, 0, 0.45);
+}
+
+.win.front::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyan) 25%, var(--red) 75%, transparent);
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+.win-bar {
   display: flex;
   align-items: center;
-  gap: 8px;
-  height: 34px;
-  padding: 0 8px 0 12px;
-  background: linear-gradient(#56616a, #48525a);
-  border-bottom: 1px solid var(--edge);
-  font-weight: 600;
-  color: var(--text-bright);
+  gap: 10px;
+  height: 42px;
+  padding: 0 8px 0 14px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0));
+  border-bottom: 1px solid var(--hair);
 }
 
-.window-icon {
-  width: 14px;
-  height: 12px;
-  background:
-    linear-gradient(var(--accent) 0 0) 0 0 / 100% 3px no-repeat,
-    linear-gradient(var(--accent) 0 0) 0 4.5px / 100% 3px no-repeat,
-    linear-gradient(var(--accent) 0 0) 0 9px / 100% 3px no-repeat;
-  opacity: 0.9;
+.win-icon {
+  flex: none;
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: var(--red);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
-.window-sub {
-  padding: 1px 7px;
-  border-radius: 9px;
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.ghost-btn {
-  margin-left: auto;
-  padding: 3px 10px;
-  border: 1px solid transparent;
-  border-radius: var(--radius);
-  background: transparent;
-  color: var(--text);
+.win-title {
+  flex: 1;
+  min-width: 0;
   font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.ghost-btn:hover {
-  border-color: var(--edge);
-  background: rgba(0, 0, 0, 0.15);
-  color: var(--text-bright);
+.win-sub {
+  margin-left: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+/* Hairline pill buttons. */
+.btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--text-soft);
+  font-size: 12px;
+  font-weight: 600;
+  transition: color 120ms, background 120ms, border-color 120ms;
+}
+
+.btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--line-strong);
+}
+
+.btn-small {
+  height: 26px;
+  padding: 0 12px;
+  font-size: 11.5px;
 }
 
 .rack-scroll {
   overflow-x: auto;
-  padding: 6px 10px 12px;
+  padding: 6px 12px 12px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
 }
 
 /* ---------- orbit visualizer ---------- */
@@ -354,7 +459,7 @@ kbd {
   gap: 16px;
 }
 
-.stage .window {
+.stage .win {
   margin: 0;
 }
 
@@ -364,22 +469,12 @@ kbd {
   width: min(100%, 360px);
 }
 
-.orbit-icon {
-  width: 13px;
-  height: 13px;
-  border: 2px solid var(--accent);
-  border-radius: 50%;
-  background: radial-gradient(circle, var(--accent) 0 2px, transparent 2.5px);
-  opacity: 0.9;
-}
-
 .orbit-body {
   flex: 1;
   display: grid;
   place-items: center;
-  padding: 12px;
-  background: radial-gradient(circle at 50% 50%, #1d262b 0%, #12181b 70%);
-  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
+  padding: 14px;
+  background: radial-gradient(circle at 50% 50%, rgba(var(--cyan-rgb), 0.05), transparent 70%);
 }
 
 .orbit-body canvas {
@@ -434,10 +529,10 @@ kbd {
 }
 
 .rack-head {
-  height: 30px;
-  font-size: 11px;
+  height: 32px;
+  font-size: 9.5px;
   font-weight: 600;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--text-dim);
   text-align: center;
@@ -445,7 +540,7 @@ kbd {
 
 .rack-head .h-name {
   text-align: left;
-  padding-left: 4px;
+  padding-left: 2px;
 }
 
 /* Step LEDs and pads share one layout: 26px cells, 3px gaps, an extra 6px every 4 steps. */
@@ -473,26 +568,35 @@ kbd {
 
 .step-led::after {
   content: '';
-  width: 10px;
-  height: 4px;
-  border-radius: 2px;
-  background: #283035;
-  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.6);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  border: 1px solid var(--text-dim);
+  opacity: 0.6;
+}
+
+.step-led:nth-child(4n + 1)::after {
+  opacity: 1;
 }
 
 .step-led.lit::after {
-  background: var(--led);
-  box-shadow: 0 0 6px var(--led-glow);
+  border-color: var(--cyan);
+  background: var(--cyan);
+  box-shadow: 0 0 6px rgba(var(--cyan-rgb), 0.8);
+  opacity: 1;
 }
 
+/* Rows sit flat on the glass, split by hairlines. */
 .channel {
   position: relative;
-  height: 46px;
+  height: 50px;
   padding: 0 4px;
-  margin-top: 4px;
-  border-radius: var(--radius);
-  background: var(--panel-2);
-  box-shadow: inset 0 1px 0 var(--edge-light), 0 1px 0 rgba(0, 0, 0, 0.3);
+  border-top: 1px solid var(--hair);
+  transition: background 150ms;
+}
+
+.channel:hover {
+  background: rgba(255, 255, 255, 0.015);
 }
 
 .channel::before {
@@ -500,12 +604,18 @@ kbd {
   content: '';
   position: absolute;
   left: 0;
-  top: 6px;
-  bottom: 6px;
-  width: 3px;
-  border-radius: 0 2px 2px 0;
+  top: 12px;
+  bottom: 12px;
+  width: 2px;
+  border-radius: 2px;
   background: var(--ch);
-  opacity: 0.85;
+  box-shadow: 0 0 8px var(--ch);
+  opacity: 0.9;
+}
+
+.channel.muted::before {
+  opacity: 0.25;
+  box-shadow: none;
 }
 
 .channel.muted .pads,
@@ -514,20 +624,21 @@ kbd {
   opacity: 0.4;
 }
 
+/* Mute: a lit status dot while the channel plays, a hollow ring when muted. */
 .mute-led {
   justify-self: center;
-  width: 12px;
-  height: 12px;
+  width: 9px;
+  height: 9px;
   padding: 0;
-  border: 1px solid #12171a;
+  border: 1px solid var(--text-dim);
   border-radius: 50%;
-  background: #2c3439;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.6);
+  background: transparent;
 }
 
 .mute-led.on {
-  background: radial-gradient(circle at 35% 35%, #d7ffb0, var(--led) 55%, #5aa52a);
-  box-shadow: 0 0 7px var(--led-glow);
+  border-color: var(--cyan);
+  background: var(--cyan);
+  box-shadow: 0 0 6px rgba(var(--cyan-rgb), 0.7);
 }
 
 .name-slot {
@@ -537,172 +648,83 @@ kbd {
   min-width: 0;
 }
 
+/* The channel name previews the drum: a numbered entry like the dashboard menu. */
 .channel-name {
-  position: relative;
   display: flex;
-  align-items: center;
-  gap: 7px;
-  height: 22px;
-  padding: 0 8px 0 0;
-  border: 1px solid var(--edge);
-  border-radius: 3px;
-  background: linear-gradient(#66727a, #545f66);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
-  color: var(--text-bright);
-  font-weight: 600;
+  align-items: baseline;
+  gap: 10px;
+  padding: 0 2px;
+  border: 0;
+  background: none;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
   text-align: left;
-  overflow: hidden;
-}
-
-.channel-name:hover {
-  background: linear-gradient(#717e86, #5d6970);
-}
-
-.channel-num {
-  display: grid;
-  place-items: center;
-  width: 22px;
-  align-self: stretch;
-  background: var(--ch);
-  color: #1b1f22;
-  font-family: var(--mono);
-  font-size: 12px;
-}
-
-.channel-label {
   white-space: nowrap;
 }
 
-.channel.hit .channel-name {
-  animation: hit 0.18s ease-out;
+.channel-num {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0;
+  color: var(--ch);
 }
 
-@keyframes hit {
+.channel-name:hover .channel-label {
+  color: var(--cyan);
+}
+
+.channel.hit .channel-num,
+.hex-module.hit .channel-num {
+  animation: num-hit 0.2s ease-out;
+}
+
+@keyframes num-hit {
   from {
-    box-shadow: inset 0 0 0 40px color-mix(in srgb, var(--ch) 35%, transparent), 0 0 10px var(--ch);
+    color: #fff;
+    text-shadow: 0 0 8px var(--ch), 0 0 2px var(--ch);
   }
 }
 
-.preset-line {
+.voice-line {
   display: flex;
-  gap: 3px;
 }
 
-.preset-select {
+.voice-select {
   flex: 1;
   min-width: 0;
-  height: 18px;
-  padding: 0 18px 0 6px;
-  border: 1px solid var(--edge);
-  border-radius: 3px;
+  height: 22px;
+  padding: 0 22px 0 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
   background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0h8L4 5z' fill='%237f8d95'/%3E%3C/svg%3E") right 6px center no-repeat,
-    var(--panel-3);
-  color: var(--text);
-  font-size: 12px;
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M.5.5 4 4 7.5.5' fill='none' stroke='%239cc7cf' stroke-linecap='round'/%3E%3C/svg%3E") right 9px center no-repeat,
+    rgba(0, 0, 0, 0.25);
+  color: var(--text-soft);
+  font-size: 11px;
   appearance: none;
   cursor: pointer;
+  transition: border-color 120ms, color 120ms;
 }
 
-.preset-select:hover {
-  color: var(--text-bright);
+.voice-select:hover:not(:disabled) {
+  color: #fff;
+  border-color: var(--line-strong);
 }
 
-.preset-select option {
-  background: var(--panel-3);
-}
-
-.synth-toggle {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 20px;
-  height: 18px;
-  padding: 0;
-  border: 1px solid var(--edge);
-  border-radius: 3px;
-  background: var(--panel-3);
-}
-
-.synth-toggle svg {
-  width: 11px;
-  height: 11px;
-  fill: var(--text-dim);
-  stroke: var(--text-dim);
-  stroke-width: 1;
-}
-
-.synth-toggle:hover svg {
-  fill: var(--text-bright);
-  stroke: var(--text-bright);
-}
-
-.synth-toggle[aria-expanded='true'] {
-  background: var(--accent-soft);
-  border-color: color-mix(in srgb, var(--accent) 50%, var(--edge));
-}
-
-.synth-toggle[aria-expanded='true'] svg {
-  fill: var(--accent);
-  stroke: var(--accent);
-}
-
-/* ---------- synth panel (opens under a channel row) ---------- */
-
-.channel.open {
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-}
-
-.synth-panel {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px 8px 78px;
-  border-radius: 0 0 var(--radius) var(--radius);
-  background: var(--panel-3);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.35);
-}
-
-.synth-panel[hidden] {
-  display: none;
-}
-
-.synth-panel::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 6px;
-  width: 3px;
-  border-radius: 0 0 2px 0;
-  background: var(--ch);
-  opacity: 0.85;
-}
-
-.synth-name {
-  width: 156px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
+/* A track with one voice shows it as a plain label. */
+.voice-select:disabled {
+  border-color: transparent;
+  background: none;
   color: var(--text-dim);
+  cursor: default;
+  opacity: 1;
 }
 
-.synth-slot {
-  flex-direction: column;
-  align-items: center;
-  width: 54px;
-}
-
-.synth-slot::before {
-  content: attr(data-label);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  color: var(--text-dim);
+.voice-select option {
+  background: #06141d;
+  color: var(--text);
 }
 
 /* ---------- step pads ---------- */
@@ -710,102 +732,102 @@ kbd {
 .pad {
   height: 32px;
   padding: 0;
-  border: 1px solid #22292d;
-  border-radius: 3px;
-  background: linear-gradient(#636d74, var(--pad));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 1px 1px rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--hair);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.035);
   transition: background 0.08s, transform 0.08s;
 }
 
+/* Every other group of four is tinted, so the beats are easy to count. */
 .pad.alt {
-  background: linear-gradient(#745f67, var(--pad-alt));
+  background: rgba(var(--cyan-rgb), 0.06);
+  border-color: rgba(var(--cyan-rgb), 0.08);
 }
 
 .pad:hover:not(:disabled) {
-  filter: brightness(1.15);
+  border-color: var(--line-strong);
 }
 
 .pad:active:not(:disabled) {
   transform: translateY(1px);
 }
 
-.pad.on {
-  background: linear-gradient(#ffffff, var(--pad-on));
-  box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--ch) 70%, transparent), 0 0 6px rgba(255, 255, 255, 0.12);
-}
-
+.pad.on,
 .pad.alt.on {
-  background: linear-gradient(#ffffff, var(--pad-on-alt));
+  background: color-mix(in srgb, var(--ch) 78%, transparent);
+  border-color: var(--ch);
+  box-shadow: 0 0 12px -3px var(--ch);
 }
 
 .pad.out {
-  background: #2a3236;
-  border-color: #242b2f;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.025);
   cursor: default;
 }
 
+/* The playhead: a cyan frame, and a bright flash on a hit. */
 .pad.now {
-  outline: 2px solid var(--led);
-  outline-offset: -1px;
+  border-color: var(--cyan);
+  box-shadow: inset 0 0 0 1px var(--cyan), 0 0 10px -2px rgba(var(--cyan-rgb), 0.7);
 }
 
 .pad.on.now {
   background: var(--ch);
-  box-shadow: 0 0 12px var(--ch);
+  border-color: #fff;
+  box-shadow: inset 0 0 0 1px #fff, 0 0 16px var(--ch);
 }
 
-/* Hits added by hand light up in their own colour; Euclidean hits removed by hand get an outline. */
+/* Hits added by hand are white, with the channel colour along the bottom; Euclidean hits
+   removed by hand get a dashed outline. */
 .pad.on.added,
 .pad.alt.on.added {
-  background: linear-gradient(#a6e3ff, var(--manual));
-  border-color: #1d5f80;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 0 7px var(--manual-glow);
+  background: #fff;
+  border-color: #fff;
+  box-shadow: inset 0 -3px 0 var(--ch), 0 0 12px -2px rgba(255, 255, 255, 0.55);
 }
 
 .pad.on.added.now {
-  background: #c9efff;
-  box-shadow: 0 0 14px var(--manual);
+  box-shadow: inset 0 -3px 0 var(--ch), 0 0 0 1px var(--cyan), 0 0 16px rgba(255, 255, 255, 0.7);
 }
 
 .pad.removed {
-  box-shadow: inset 0 0 0 2px #22292d, inset 0 0 0 3px var(--manual);
-  background-image: none;
+  border: 1px dashed var(--text-soft);
 }
 
 .legend {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin-left: 6px;
+  margin-left: 8px;
   white-space: nowrap;
 }
 
 .legend-swatch {
   width: 12px;
   height: 14px;
-  border-radius: 2px;
-  background: linear-gradient(#a6e3ff, var(--manual));
-  box-shadow: 0 0 5px var(--manual-glow);
+  border-radius: 3px;
+  background: #fff;
+  box-shadow: inset 0 -2px 0 var(--cyan), 0 0 8px -2px rgba(255, 255, 255, 0.6);
 }
 
 .legend-swatch.removed {
-  background: var(--pad);
-  box-shadow: inset 0 0 0 1px #22292d, inset 0 0 0 2px var(--manual);
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px dashed var(--text-soft);
+  box-shadow: none;
 }
 
 .ratio {
   font-family: var(--mono);
-  font-size: 13px;
+  font-size: 11px;
   color: var(--text-dim);
   text-align: right;
   padding-right: 4px;
 }
 
 .ratio b {
-  font-weight: normal;
-  color: var(--text-bright);
+  font-weight: 300;
   font-size: 16px;
+  color: #fff;
 }
 
 /* ---------- knobs ---------- */
@@ -833,53 +855,49 @@ kbd {
 }
 
 .knob-body {
-  fill: #4d585f;
-  stroke: #1a2024;
+  fill: rgba(var(--ink-rgb), 0.9);
+  stroke: rgba(255, 255, 255, 0.12);
   stroke-width: 1;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.6));
+  transition: stroke 120ms;
 }
 
 .knob-track {
   fill: none;
-  stroke: #1f2629;
-  stroke-width: 3;
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 2.5;
   stroke-linecap: round;
 }
 
 .knob-fill {
   fill: none;
-  stroke: var(--accent);
-  stroke-width: 3;
+  stroke: var(--cyan);
+  stroke-width: 2.5;
   stroke-linecap: round;
-  filter: drop-shadow(0 0 2px rgba(255, 159, 46, 0.6));
+  filter: drop-shadow(0 0 2.5px rgba(var(--cyan-rgb), 0.7));
 }
 
 .knob-pointer {
-  stroke: #eef3f5;
-  stroke-width: 2.2;
+  stroke: #fff;
+  stroke-width: 2;
   stroke-linecap: round;
 }
 
 .knob:hover .knob-body,
 .knob.dragging .knob-body {
-  fill: #5a666e;
+  stroke: var(--line-strong);
 }
 
 .knob-value {
   margin-top: -3px;
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 10px;
   line-height: 12px;
   color: var(--text-dim);
 }
 
 .knob.dragging .knob-value,
 .knob:hover .knob-value {
-  color: var(--accent);
-}
-
-.vol-slot .knob-value {
-  display: none;
+  color: var(--cyan);
 }
 
 .vol-slot {
@@ -887,45 +905,256 @@ kbd {
   justify-content: center;
 }
 
-.vol-slot .knob-fill {
-  stroke: #9fb3bd;
+.vol-slot .knob-value {
+  display: none;
+}
+
+/* Volume knobs are quieter: a pale arc instead of cyan. */
+.vol-slot .knob-fill,
+.master .knob-fill {
+  stroke: var(--text-soft);
   filter: none;
+}
+
+/* ---------- drum synth panel (below the rack) ---------- */
+
+.hexpanel {
+  width: min(100%, 1000px); /* matches the channel rack */
+  margin: 16px auto 0;
+}
+
+/* One tile per channel, like the dashboard's stat tiles. */
+.hex-modules {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  padding: 14px;
+}
+
+.hex-module {
+  position: relative;
+  padding: 0 14px 14px;
+  border: 1px solid var(--hair);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.018);
+  overflow: hidden;
+  transition: border-color 150ms;
+}
+
+.hex-module:hover {
+  border-color: rgba(var(--cyan-rgb), 0.2);
+}
+
+/* The channel's colour as a fading hairline across the top. */
+.hex-module::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, var(--ch), transparent 85%);
+  opacity: 0.9;
+}
+
+.hex-module.muted .hex-controls {
+  opacity: 0.45;
+}
+
+.hex-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 13px 0 11px;
+  border: 0;
+  border-bottom: 1px solid var(--hair);
+  background: none;
+  text-align: left;
+}
+
+.hex-track {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #fff;
+}
+
+.hex-voice {
+  flex: 1;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.hex-head:hover .hex-track {
+  color: var(--cyan);
+}
+
+/* Trigger LED: a hollow dot that flashes in the channel colour on every hit. */
+.hex-led {
+  align-self: center;
+  width: 7px;
+  height: 7px;
+  border: 1px solid color-mix(in srgb, var(--ch) 55%, transparent);
+  border-radius: 50%;
+}
+
+.hex-module.hit .hex-led {
+  animation: led 0.22s ease-out;
+}
+
+@keyframes led {
+  from {
+    background: var(--ch);
+    border-color: var(--ch);
+    box-shadow: 0 0 8px var(--ch);
+  }
+}
+
+.hex-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 6px;
+}
+
+.synth-slot {
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 58px;
+}
+
+.synth-slot::before {
+  content: attr(data-label);
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.switch-slot {
+  width: auto;
+  min-width: 54px;
+  gap: 6px;
+}
+
+/* Multi-position switches: the dashboard's segmented control. */
+.switch {
+  display: flex;
+  height: 26px;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.switch button {
+  min-width: 28px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.switch button:hover {
+  color: var(--text);
+}
+
+.switch button.on {
+  color: var(--cyan);
+  background: var(--cyan-soft);
+  box-shadow: inset 0 0 0 1px rgba(var(--cyan-rgb), 0.25);
 }
 
 /* ---------- misc ---------- */
 
 .footnote {
-  margin: 14px auto 0;
+  max-width: 900px;
+  margin: 18px auto 0;
   text-align: center;
   color: var(--text-dim);
-  font-size: 13px;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+@media (max-width: 1100px) {
+  .hex-modules {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .bar-status {
+    display: none;
+  }
+
+  .topbar {
+    justify-content: space-between;
+  }
 }
 
 @media (max-width: 760px) {
-  .toolbar {
-    flex-wrap: wrap;
+  .topbar {
     gap: 10px;
+    height: auto;
+    padding: 12px 14px;
+    flex-wrap: wrap;
   }
 
-  .hint-bar {
-    order: 3;
-    flex-basis: 100%;
+  .brand-name {
+    font-size: 14px;
   }
 
   .transport {
-    margin-left: auto;
+    gap: 6px;
+  }
+
+  .btn-round {
+    width: 34px;
+    height: 34px;
+  }
+
+  .readout {
+    height: 34px;
+    line-height: 34px;
+    padding: 0 9px;
+  }
+
+  .readout-value {
+    font-size: 17px;
+  }
+
+  .tempo {
+    min-width: 0;
   }
 
   .position {
     display: none;
   }
 
+  .deco-cube {
+    top: 64px;
+    bottom: auto;
+    right: 10px;
+    width: 96px;
+    height: 96px;
+  }
+
   .workspace {
-    padding-top: 16px;
+    padding: 16px 10px 32px;
   }
 
   /* Phones: each channel wraps onto two lines, controls on top and pads below. */
-  .window {
+  .win {
     width: auto;
   }
 
@@ -934,7 +1163,7 @@ kbd {
   }
 
   .rack-scroll {
-    padding: 4px 6px 8px;
+    padding: 0 8px 6px;
   }
 
   .rack-head {
@@ -946,11 +1175,20 @@ kbd {
     grid-template-areas:
       'mute vol name steps density offset'
       'pads pads pads pads pads ratio';
-    row-gap: 6px;
+    row-gap: 8px;
     column-gap: 6px;
     min-width: 0;
     height: auto;
-    padding: 8px 6px 8px 8px;
+    padding: 10px 4px 10px 8px;
+  }
+
+  .channel:first-child {
+    border-top: 0;
+  }
+
+  .channel::before {
+    top: 10px;
+    bottom: 10px;
   }
 
   .mute-led { grid-area: mute; }
@@ -960,7 +1198,7 @@ kbd {
   .density-slot { grid-area: density; }
   .offset-slot { grid-area: offset; }
   .pads { grid-area: pads; gap: 2px; }
-  .ratio { grid-area: ratio; align-self: center; font-size: 11px; }
+  .ratio { grid-area: ratio; align-self: center; font-size: 10px; }
   .ratio b { font-size: 13px; }
 
   .knob-slot {
@@ -970,9 +1208,9 @@ kbd {
 
   .knob-slot::before {
     content: attr(data-label);
-    font-size: 9px;
+    font-size: 8.5px;
     font-weight: 600;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--text-dim);
   }
@@ -982,20 +1220,20 @@ kbd {
     flex: 1 1 0;
     min-width: 0;
     height: 28px;
+    border-radius: 5px;
   }
 
   .pad:nth-child(4n + 1):not(:first-child) {
     margin-left: 4px;
   }
 
-  .synth-panel {
-    justify-content: space-around;
-    gap: 6px;
-    padding: 8px 6px;
+  .hex-modules {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 10px;
   }
 
-  .synth-name {
-    display: none;
+  .hex-controls {
+    justify-content: space-around;
   }
 }
 

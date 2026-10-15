@@ -1,4 +1,4 @@
-// Rotary knob control in the style of a DAW channel knob.
+// Rotary knob control: a thin arc around a dark dial, as on a hardware channel strip.
 // Drag up/down to change, Shift for fine control, mouse wheel, arrow keys,
 // double-click to reset to the default value.
 
@@ -136,4 +136,55 @@ function createKnob(parent, opts) {
       render();
     }
   };
+}
+
+// A small multi-position switch, like a hardware toggle: one button per option, exactly one lit.
+// Arrow keys move between positions once a button has focus.
+function createSwitch(parent, opts) {
+  const o = Object.assign({ options: [], value: undefined, label: '', onChange: () => { } }, opts);
+  let value = o.value ?? o.options[0];
+
+  const el = document.createElement('div');
+  el.className = 'switch';
+  el.setAttribute('role', 'radiogroup');
+  el.setAttribute('aria-label', o.label);
+  const buttons = o.options.map((option) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = option;
+    btn.setAttribute('role', 'radio');
+    btn.addEventListener('click', () => set(option));
+    el.appendChild(btn);
+    return btn;
+  });
+
+  function render() {
+    buttons.forEach((btn, i) => {
+      const on = o.options[i] === value;
+      btn.classList.toggle('on', on);
+      btn.setAttribute('aria-checked', String(on));
+      btn.tabIndex = on ? 0 : -1;
+    });
+    el.title = `${o.label}: ${value}`;
+  }
+
+  function set(next, silent) {
+    if (next === value || !o.options.includes(next)) return;
+    value = next;
+    render();
+    if (!silent) o.onChange(value);
+  }
+
+  el.addEventListener('keydown', (e) => {
+    const move = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
+    if (!move) return;
+    e.preventDefault();
+    const i = Math.min(o.options.length - 1, Math.max(0, o.options.indexOf(value) + move));
+    set(o.options[i]);
+    buttons[i].focus();
+  });
+
+  render();
+  parent.appendChild(el);
+  return { el, value: () => value, set };
 }

@@ -4,12 +4,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#021d2e">
   <title>EucliDrummer</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&family=Share+Tech+Mono&display=swap">
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&family=Michroma&family=Sora:wght@300;400;500;600;700&display=swap">
   <link rel="stylesheet" href="style.css">
+  <script src="backdrop.js" defer></script>
   <script src="knob.js" defer></script>
   <script src="synths.js" defer></script>
   <script src="visualizer.js" defer></script>
@@ -17,31 +19,40 @@
 </head>
 
 <body>
-  <header class="toolbar">
+  <div class="backdrop" aria-hidden="true">
+    <svg class="deco-cube" viewBox="-100 -100 200 200">
+      <path class="cube cube-back" id="cubeBack"></path>
+      <path class="cube" id="cubeFront"></path>
+    </svg>
+  </div>
+
+  <header class="topbar">
     <div class="brand">
-      <span class="brand-mark" aria-hidden="true"></span>
-      <span class="brand-name">Eucli<b>Drummer</b></span>
+      <span class="brand-name">Eucli<span class="brand-accent">drummer</span></span>
     </div>
 
-    <div class="hint-bar" id="hint">Press <kbd>Space</kbd> or the play button to start</div>
+    <div class="bar-status" id="hint">Press <kbd>Space</kbd> or play to start</div>
 
     <div class="transport" role="group" aria-label="Transport">
-      <button class="t-btn t-play" id="playBtn" aria-label="Play" title="Play / pause (Space)">
-        <svg viewBox="0 0 16 16" aria-hidden="true"><path class="i-play" d="M4 2.5v11l9-5.5z" /><path class="i-pause" d="M3.5 2.5h3.2v11H3.5zM9.3 2.5h3.2v11H9.3z" /></svg>
+      <button class="btn-round t-play" id="playBtn" aria-label="Play" title="Play / pause (Space)">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path class="i-play" d="M7 4.5v15l12-7.5z" />
+          <path class="i-pause" d="M6.5 4.5h4v15h-4zM13.5 4.5h4v15h-4z" />
+        </svg>
       </button>
-      <button class="t-btn t-stop" id="stopBtn" aria-label="Stop" title="Stop">
-        <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="3" width="10" height="10" rx="1" /></svg>
+      <button class="btn-round t-stop" id="stopBtn" aria-label="Stop" title="Stop">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2" /></svg>
       </button>
 
-      <div class="lcd tempo" id="tempo" role="slider" tabindex="0" aria-label="Tempo" aria-valuemin="40"
+      <div class="readout tempo" id="tempo" role="slider" tabindex="0" aria-label="Tempo" aria-valuemin="40"
         aria-valuemax="240" title="Tempo: drag up/down, scroll, or use arrow keys">
-        <span class="lcd-value" id="tempoValue">90.000</span>
-        <span class="lcd-label">BPM</span>
+        <span class="readout-value" id="tempoValue">90.000</span>
+        <span class="readout-label">BPM</span>
       </div>
 
-      <div class="lcd position">
-        <span class="lcd-value" id="position">1:01</span>
-        <span class="lcd-label">B:ST</span>
+      <div class="readout position">
+        <span class="readout-value" id="position">1:01</span>
+        <span class="readout-label">Bar</span>
       </div>
 
       <div class="master">
@@ -53,12 +64,14 @@
 
   <main class="workspace">
     <div class="stage">
-      <section class="window rack" aria-label="Channel rack">
-        <div class="window-title">
-          <span class="window-icon" aria-hidden="true"></span>
-          <span>Channel rack</span>
-          <span class="window-sub">Euclidean</span>
-          <button class="ghost-btn" id="clearBtn" title="Clear every pattern">Clear</button>
+      <section class="win front rack" aria-label="Channel rack">
+        <div class="win-bar">
+          <svg class="win-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="3" y="3" width="18" height="18" rx="2" />
+            <path d="M3 9h18M3 15h18M9 3v18M15 3v18" />
+          </svg>
+          <span class="win-title">Channel rack <span class="win-sub">Euclidean</span></span>
+          <button class="btn btn-small" id="clearBtn" title="Clear every pattern">Clear</button>
         </div>
 
         <div class="rack-scroll">
@@ -78,11 +91,16 @@
         </div>
       </section>
 
-      <section class="window orbit-panel" id="orbitPanel" aria-label="Pattern visualizer">
-        <div class="window-title">
-          <span class="orbit-icon" aria-hidden="true"></span>
-          <span>Orbit</span>
-          <button class="ghost-btn" id="orbitToggle" aria-expanded="true" aria-controls="orbitBody"
+      <section class="win orbit-panel" id="orbitPanel" aria-label="Pattern visualizer">
+        <div class="win-bar">
+          <svg class="win-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="3" />
+            <circle cx="19" cy="5" r="2" />
+            <circle cx="5" cy="19" r="2" />
+            <path d="M10.4 21.9a10 10 0 0 0 9.94-15.42M13.5 2.1a10 10 0 0 0-9.84 15.42" />
+          </svg>
+          <span class="win-title">Orbit</span>
+          <button class="btn btn-small" id="orbitToggle" aria-expanded="true" aria-controls="orbitBody"
             title="Show or hide the visualizer">Hide</button>
         </div>
         <div class="orbit-body" id="orbitBody">
@@ -92,11 +110,12 @@
       </section>
     </div>
 
-    <section class="window hexpanel" aria-label="Drum synth">
-      <div class="window-title">
-        <span class="hex-icon" aria-hidden="true"></span>
-        <span>Drum synth</span>
-        <span class="window-sub">HexDrums style</span>
+    <section class="win hexpanel" aria-label="Drum synth">
+      <div class="win-bar">
+        <svg class="win-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M2 13a2 2 0 0 0 2-2V7a2 2 0 0 1 4 0v13a2 2 0 0 0 4 0V4a2 2 0 0 1 4 0v13a2 2 0 0 0 4 0v-4a2 2 0 0 1 2-2" />
+        </svg>
+        <span class="win-title">Drum synth <span class="win-sub">HexDrums style</span></span>
       </div>
       <div class="hex-modules" id="synthModules"></div>
     </section>

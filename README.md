@@ -7,7 +7,7 @@ EucliDrummer is a browser drum machine built on the Web Audio API, with no libra
 ## Features
 
 - Six tracks: Kick, Snare, Clap, HiHat, Perc 1 and Perc 2, each played by a drum synthesizer modelled on the analog voices of the [Erica Synths HexDrums](https://www.ericasynths.lv/media/HexDrums_manual.pdf).
-- A dark, DAW-style interface inspired by FL Studio's channel rack, with rotary knobs, lit step pads, a running playhead and a tempo display.
+- A dark interface in the Home Dashboard's Deep Ocean look: frosted glass windows on a deep-blue field, a wireframe cube in the corner that turns a little faster on every beat, cyan for whatever is live (the playhead, knob arcs, the selected switch) and red for the wordmark and window icons. Each track keeps its own colour for its pads, its ring in Orbit and its synth module.
 - Per-track Euclidean controls:
   - **Steps** sets the pattern length (0 to 16 steps).
   - **Density** sets how many hits are spread across those steps (0 to 16, capped at the step count).
@@ -37,11 +37,11 @@ Then open <http://localhost:8000> in your browser. In VS Code, the Live Server e
 
 ## How to use it
 
-1. Press **Space** or the green play button to start the loop. Space again stops it; the play button pauses. Browsers only allow audio after you interact with the page, and either of these counts.
+1. Press **Space** or the round white play button to start the loop. Space again stops it; the play button (cyan while playing) pauses. Browsers only allow audio after you interact with the page, and either of these counts.
 2. Turn a track's **Density** knob to add or remove hits. Each track starts with a groove loaded, and **Clear** in the rack's title bar empties every pattern.
 3. Turn **Steps** to make a track loop over fewer steps, and **Offset** to shift where its hits land. Tracks with different step counts drift against each other, which is where the polyrhythms come from.
-4. Click pads to add or remove individual hits on top of the generated pattern. Hits you add by hand light up blue instead of white, and generated hits you remove get a blue outline, so you can always tell your edits apart from the Euclidean pattern.
-5. Pick a voice from a track's dropdown, then shape the sound with that track's knobs and switches in the drum synth panel below the rack. Use the green light to mute a track, and the small knob beside it for its volume.
+4. Click pads to add or remove individual hits on top of the generated pattern. Hits you add by hand light up white with the track's colour along the bottom, and generated hits you remove get a dashed outline, so you can always tell your edits apart from the Euclidean pattern.
+5. Pick a voice from a track's dropdown, then shape the sound with that track's knobs and switches in the drum synth panel below the rack. Use the cyan dot to mute a track (it turns into a hollow ring), and the small knob beside it for its volume.
 6. Set the speed by dragging the **BPM** display up or down, scrolling over it, or focusing it and using the arrow keys. Double-click it to go back to 90.
 
 Knobs work the same way: drag up or down (hold Shift for finer steps), scroll, or use the arrow keys, and double-click to return to the starting value. Switches are clicked, or moved with the arrow keys.
@@ -74,12 +74,13 @@ EucliDrummer stores these patterns as a precomputed lookup table (`EUCLID` in `s
 
 | Path | What it is |
 | --- | --- |
-| `index.html` | The page: toolbar, transport and the channel rack shell. Loads the scripts. |
+| `index.html` | The page: top bar, transport and the window shells. Loads the fonts and scripts. |
+| `backdrop.js` | The turning wireframe cube behind the page. |
 | `sketch.js` | The app: the track table, the Euclidean pattern table, playback, and building the channel rack and the drum synth panel. |
 | `synths.js` | The drum voices: each one's panel controls and Web Audio patch. |
 | `knob.js` | The rotary knob used for every knob on the page, and the multi-position switch used in the drum synth panel. |
 | `visualizer.js` | Orbit, the canvas view that draws each track as a ring and animates it with playback. |
-| `style.css` | The FL Studio-inspired theme, including the phone layout. |
+| `style.css` | The Deep Ocean theme (colour and font tokens at the top), including the phone layout. |
 | `docs/screenshots/` | Screenshots used in this README. |
 
 ## Changing a voice or a track

@@ -19,30 +19,30 @@ const DEFAULT_VOLUME = 0.8;
 const TRACKS = [
   {
     id: 'kick', label: 'Kick', voices: ['bd1', 'bd2'], voice: 'bd1',
-    color: '#ff8a3d', groove: { steps: 16, density: 4, offset: 0 }
+    color: '#2ad4ff', groove: { steps: 16, density: 4, offset: 0 }
   },
   {
     id: 'snare', label: 'Snare', voices: ['snare', 'machine'], voice: 'snare',
     sounds: { machine: { pitch: 200, detune: 1.47, m2: 60, decay: 120, noise: 70, noisePitch: 5000, noiseDecay: 150 } },
-    color: '#ff5d7a', groove: { steps: 16, density: 2, offset: 4 }
+    color: '#ff2a4f', groove: { steps: 16, density: 2, offset: 4 }
   },
   {
     id: 'clap', label: 'Clap', voices: ['clap'], voice: 'clap',
-    color: '#e879f9', groove: { steps: 16, density: 3, offset: 7 }
+    color: '#ff6ad5', groove: { steps: 16, density: 3, offset: 7 }
   },
   {
     id: 'hh', label: 'HiHat', voices: ['hihat'], voice: 'hihat',
-    color: '#ffd23f', groove: { steps: 16, density: 8, offset: 0 }
+    color: '#5cf2c4', groove: { steps: 16, density: 8, offset: 0 }
   },
   {
     id: 'p1', label: 'Perc 1', voices: ['machine', 'rimshot', 'bd2'], voice: 'machine',
     sounds: { machine: { pitch: 330, m1: 90, m2: 15, pitchDecay: 25, decayAmount: 20, decay: 200, click: 25 } },
-    color: '#3ddbb8', groove: { steps: 12, density: 5, offset: 0 }
+    color: '#a08cff', groove: { steps: 12, density: 5, offset: 0 }
   },
   {
     id: 'p2', label: 'Perc 2', voices: ['rimshot', 'machine', 'bd2'], voice: 'rimshot',
     sounds: { machine: { pitch: 560, detune: 1.48, m1: 70, m2: 70, decayAmount: 0, decay: 260, click: 10 } },
-    color: '#a78bfa', groove: { steps: 7, density: 3, offset: 2 }
+    color: '#4d7cff', groove: { steps: 7, density: 3, offset: 2 }
   },
 ];
 
@@ -220,7 +220,7 @@ function buildRack() {
       <div class="vol-slot"></div>
       <div class="name-slot">
         <button class="channel-name" title="Preview ${track.label}">
-          <span class="channel-num">${index + 1}</span>
+          <span class="channel-num">${String(index + 1).padStart(2, '0')}</span>
           <span class="channel-label">${track.label}</span>
         </button>
         <div class="voice-line">
@@ -328,7 +328,7 @@ function buildSynthModule(track, index) {
   module.setAttribute('role', 'group');
   module.innerHTML = `
     <button class="hex-head" title="Preview ${track.label}">
-      <span class="channel-num">${index + 1}</span>
+      <span class="channel-num">${String(index + 1).padStart(2, '0')}</span>
       <span class="hex-track">${track.label}</span>
       <span class="hex-voice"></span>
       <span class="hex-led" aria-hidden="true"></span>
@@ -418,10 +418,7 @@ function renderTrack(track) {
 // ---------- visualizer ----------
 
 function buildVisualizer() {
-  orbit = createVisualizer(document.getElementById('orbit'), TRACKS, {
-    stepDuration: () => 60 / tempoBpm / 4,
-    level: () => Math.max(meters[0].level, meters[1].level),
-  });
+  orbit = createVisualizer(document.getElementById('orbit'), TRACKS);
 
   const panel = document.getElementById('orbitPanel');
   const toggle = document.getElementById('orbitToggle');
@@ -456,7 +453,7 @@ function buildTransport() {
     }
   });
 
-  // Tempo display: drag vertically, scroll, or use the arrow keys, like a DAW tempo LCD.
+  // Tempo display: drag vertically, scroll, or use the arrow keys, like a hardware tempo display.
   const tempo = document.getElementById('tempo');
   const setTempo = (bpm) => {
     tempoBpm = Math.min(240, Math.max(40, Math.round(bpm)));
@@ -515,7 +512,6 @@ function pause() {
   if (ticker) ticker.terminate();
   ticker = null;
   setPlaying(false);
-  orbit.pause();
 }
 
 function stop() {
@@ -532,8 +528,8 @@ function setPlaying(on) {
   btn.classList.toggle('active', on);
   btn.setAttribute('aria-label', on ? 'Pause' : 'Play');
   document.getElementById('hint').innerHTML = on
-    ? 'Playing. Press <kbd>Space</kbd> to stop'
-    : 'Press <kbd>Space</kbd> or the play button to start';
+    ? 'Playing · <kbd>Space</kbd> to stop'
+    : 'Press <kbd>Space</kbd> or play to start';
 }
 
 // Schedules every step due within the lookahead window. The playhead is drawn when
@@ -556,6 +552,7 @@ function showTick(tick) {
   clearPlayhead();
   orbit.step(tick);
   const step = tick % MAX_STEPS;
+  if (step % 4 === 0) backdrop.pulse();
   document.querySelectorAll('.step-led')[step].classList.add('lit');
   document.getElementById('position').textContent =
     `${Math.floor(tick / MAX_STEPS) + 1}:${String(step + 1).padStart(2, '0')}`;

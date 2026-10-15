@@ -55,7 +55,7 @@ function createVisualizer(canvas, tracks) {
       const lit = tick >= 0 && i === tick % 16;
       const [x1, y1] = at(outer + 6, a);
       const [x2, y2] = at(outer + (i % 4 ? 9 : 12), a);
-      ctx.strokeStyle = lit ? 'rgba(156,240,79,0.9)' : i % 4 ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.22)';
+      ctx.strokeStyle = lit ? 'rgba(42,212,255,0.95)' : i % 4 ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.22)';
       ctx.lineWidth = lit ? 2 : 1.5;
       ctx.beginPath();
       ctx.moveTo(x1, y1);

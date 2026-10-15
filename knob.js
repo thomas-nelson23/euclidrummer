@@ -1,4 +1,4 @@
-// Rotary knob control in the style of a DAW channel knob.
+// Rotary knob control: a thin arc around a dark dial, as on a hardware channel strip.
 // Drag up/down to change, Shift for fine control, mouse wheel, arrow keys,
 // double-click to reset to the default value.
 
